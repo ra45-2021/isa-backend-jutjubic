@@ -1,17 +1,17 @@
 -- USERS
 INSERT INTO users (username, password_hash, display_name, bio, role)
 VALUES
-    ('ana', '{noop}pass', 'Ana Zarić', 'Studentkinja softverskog inženjerstva. Volim putovanja i planinarenje.', 'USER'),
-    ('marko',  '{noop}pass', 'Marko Marković', 'Backend dev. Spring Boot, PostgreSQL, i dobra kafa.', 'USER'),
-    ('jana',    '{noop}pass', 'Jana Petrović', 'Video editor + content. Montaža, rezovi i titlovi.', 'USER');
+    ('ana.zaric', '{noop}pass', 'Ana Zarić', 'Studentkinja softverskog inženjerstva. Volim putovanja i planinarenje.', 'USER'),
+    ('mark0',  '{noop}pass', 'Marko Marković', 'Backend dev. Spring Boot, PostgreSQL, i dobra kafa.', 'USER'),
+    ('jana_p',    '{noop}pass', 'Jana Petrović', 'Video editor + content. Montaža, rezovi i titlovi.', 'USER');
 
 -- POSTS
-INSERT INTO posts (author_id, title, description, video_url, created_at)
+INSERT INTO posts (author_id, title, description, tags_text, video_url, thumbnail_url, created_at)
 VALUES
-    (1, 'Vlog sa Fruške gore', 'Kratak vlog sa šetnje i pogleda sa vrha.', 'https://videos.jutjubic.com/fruska-gora.mp4', NOW() - INTERVAL '2 days'),
-    (2, 'Kako radi JWT u Spring-u', 'Mini objašnjenje tokena i filtera na primeru.', 'https://videos.jutjubic.com/jwt-spring.mp4', NOW() - INTERVAL '18 hours'),
-    (3, 'Montaža za početnike', '3 trika da video izgleda čistije i profesionalnije.', 'https://videos.jutjubic.com/editing-basics.mp4', NOW() - INTERVAL '3 hours'),
-    (1, 'Budimpešta: moj mini vodič', 'Top mesta + saveti za prevoz i budžet.', 'https://videos.jutjubic.com/budapest-guide.mp4', NOW() - INTERVAL '25 minutes');
+    (1, 'Fruška gora VLOG', 'Kampovanje 5 dana u šumi na Fruškoj gori.', 'vlog, priroda, planinarenje', '/media/videos/fruska-gora.mp4', '/media/thumbs/fruska-gora.jpg', NOW() - INTERVAL '299 days'),
+    (2, 'Intro to SpringBoot', 'Coding for beginners - SpringBoot','spring, jwt, backend', '/media/videos/jwt-spring.mp4', '/media/thumbs/jwt-spring.jpg', NOW() - INTERVAL '3 days' ),
+    (3, 'Montaža thumbnaila za početnike', '3 trika da video izgleda čistije i profesionalnije.','video-editing, capcut', '/media/videos/editing-basics.mp4', '/media/thumbs/editing-basics.jpg', NOW() - INTERVAL '5 hours'),
+    (1, 'TOP 10 Mesta u Budimpešti', 'Top mesta + saveti za prevoz i budžet.', 'tips, guide, budapest','/media/videos/budapest-guide.mp4', '/media/thumbs/budapest-guide.jpg', NOW() - INTERVAL '2 weeks');
 
 -- COMMENTS
 INSERT INTO comments (post_id, author_id, text, created_at)

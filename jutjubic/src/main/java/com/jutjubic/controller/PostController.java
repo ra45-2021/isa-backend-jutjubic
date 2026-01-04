@@ -6,6 +6,7 @@ import com.jutjubic.dto.UserDto;
 import com.jutjubic.repository.PostRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -29,14 +30,26 @@ public class PostController {
 
     private PostViewDto toViewDto(Post p) {
         var a = p.getAuthor();
+
+        List<String> tags = List.of();
+        if (p.getTags() != null && !p.getTags().isBlank()) {
+            tags = Arrays.stream(p.getTags().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .toList();
+        }
+
         return new PostViewDto(
                 p.getId(),
                 p.getTitle(),
                 p.getDescription(),
+                tags,
                 p.getVideoUrl(),
                 p.getThumbnailUrl(),
                 p.getCreatedAt(),
                 new UserDto(a.getId(), a.getUsername(), a.getDisplayName())
         );
     }
+
+
 }

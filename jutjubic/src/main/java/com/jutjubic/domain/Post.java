@@ -27,9 +27,13 @@ public class Post {
     @Column(columnDefinition = "text")
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "tags_text", columnDefinition = "text")
+    private String tags;
+
+    @Column(name = "video_url", nullable = false)
     private String videoUrl;
 
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
     @Column(name = "created_at", nullable = false)
@@ -63,4 +67,7 @@ public class Post {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getTags() {return tags;}
+    public void setTags(String tags) {this.tags = tags;}
 }
