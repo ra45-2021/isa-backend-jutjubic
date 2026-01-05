@@ -1,9 +1,9 @@
 package com.jutjubic.controller;
 
 import com.jutjubic.domain.Post;
-import com.jutjubic.dto.PostViewDto;
-import com.jutjubic.dto.UserDto;
+import com.jutjubic.dto.*;
 import com.jutjubic.repository.PostRepository;
+import com.jutjubic.service.CommentService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -15,10 +15,16 @@ import java.util.List;
 public class PostController {
 
     private final PostRepository postRepository;
+    private final CommentService commentService;
 
-    public PostController(PostRepository postRepository) {
+    public PostController(
+            PostRepository postRepository,
+            CommentService commentService
+    ) {
         this.postRepository = postRepository;
+        this.commentService = commentService;
     }
+
 
     @GetMapping
     public List<PostViewDto> getAllPosts() {
@@ -47,9 +53,32 @@ public class PostController {
                 p.getVideoUrl(),
                 p.getThumbnailUrl(),
                 p.getCreatedAt(),
-                new UserDto(a.getId(), a.getUsername(), a.getDisplayName())
+                new UserDto(
+                        a.getId(),
+                        a.getUsername(),
+                        a.getName(),
+                        a.getSurname(),
+                        a.getProfileImageUrl()
+                )
         );
     }
 
 
+    @GetMapping("/{postId}/comments")
+    public CommentPageDto getComments(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        return commentService.getComments(postId, page, size);
+    }
+
+    @PostMapping("/{postId}/comments")
+    public CommentViewDto addComment(
+            @PathVariable Long postId,
+            @RequestParam String authorUsername,
+            @RequestBody CreateCommentRequestDto req
+    ) {
+        return commentService.addComment(postId, authorUsername, req.getText());
+    }
 }
