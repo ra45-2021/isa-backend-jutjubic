@@ -56,3 +56,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local Spring config overrides (OS-specific paths)
+jutjubic/src/main/java/com/jutjubic/config/StaticResourceConfig.java
+jutjubic/src/main/java/com/jutjubic/config/WebConfig.java
+
+### Mac OS ###
+.DS_Store
