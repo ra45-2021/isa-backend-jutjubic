@@ -6,26 +6,25 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path root = Path.of(uploadDir).toAbsolutePath().normalize();
+        // Dobijamo apsolutnu putanju do korena backend projekta
+        String rootPath = System.getProperty("user.dir");
 
-        /*System.out.println("=== WEB CONFIG LOADED ===");
-        System.out.println("MEDIA ROOT DIR = " + root);
-        System.out.println("MEDIA EXISTS = " + root.toFile().exists());
-        System.out.println("MEDIA IS DIR = " + root.toFile().isDirectory());
-        System.out.println("uploadDir property = " + uploadDir);*/
+        // Putanja do 'uploads' foldera (univerzalno rešavamo kose crte)
+        Path uploadsPath = Paths.get(rootPath, "jutjubic", "uploads").toAbsolutePath().normalize();
+        String location = "file:///" + uploadsPath.toString().replace("\\", "/") + "/";
 
+        // Mapiramo /uploads/** tako da gleda dubinski u sve podfoldere (thumbs, videos...)
+        registry.addResourceHandler("/uploads/**", "/media/**")
+                .addResourceLocations(location)
+                .setCachePeriod(0);
 
-        registry.addResourceHandler("/media/**")
-                .addResourceLocations("file:" + root.toString() + "/");
+        System.out.println("SERVER SERVING FROM: " + location);
     }
-
 }
