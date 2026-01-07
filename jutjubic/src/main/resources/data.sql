@@ -1,9 +1,9 @@
 -- USERS
-INSERT INTO users (username, password, email_adress, name, surname, adress, bio, role, profile_image_url)
+INSERT INTO users (username, password, email_adress, name, surname, adress, bio, role, profile_image_url, active, phone_number)
 VALUES
-    ('ana.zaric', '{noop}pass', 'ana.zaric@mail.com', 'Ana', 'Zarić', 'Bulevar oslobođenja 45, Novi Sad', 'Volim putovanja i planinarenje.', 'USER', '/uploads/ana-profile.png'),
-    ('mark0',  '{noop}pass', 'mark0@mail.com', 'Marko', 'Marković', 'Nemanjina 12, Beograd', 'Backend dev. Spring Boot, PostgreSQL, i dobra kafa.', 'USER', '/uploads/marko-profile.png'),
-    ('jana_p',    '{noop}pass', 'jana_p@mail.com', 'Jana', 'Petrović', 'Cara Dušana 8, Niš', 'Video editor + content. Montaža, rezovi i titlovi.', 'USER', '/uploads/jana-profile.png');
+    ('ana.zaric', '{noop}pass', 'ana.zaric@mail.com', 'Ana', 'Zarić', 'Bulevar oslobođenja 45, Novi Sad', 'Volim putovanja i planinarenje.', 'USER', '/uploads/ana-profile.png', true, ''),
+    ('mark0',  '{noop}pass', 'mark0@mail.com', 'Marko', 'Marković', 'Nemanjina 12, Beograd', 'Backend dev. Spring Boot, PostgreSQL, i dobra kafa.', 'USER', '/uploads/marko-profile.png', true, ''),
+    ('jana_p',    '{noop}pass', 'jana_p@mail.com', 'Jana', 'Petrović', 'Cara Dušana 8, Niš', 'Video editor + content. Montaža, rezovi i titlovi.', 'USER', '/uploads/jana-profile.png', true, '');
 
 -- POSTS
 INSERT INTO posts (author_id, title, description, tags_text, video_url, thumbnail_url, created_at)
@@ -14,7 +14,6 @@ VALUES
     (1, 'TOP 10 Mesta u Budimpešti', 'Top mesta + saveti za prevoz i budžet.', 'tips, guide, budapest','/media/videos/budapest-guide.mp4', '/media/thumbs/budapest-guide.jpg', NOW() - INTERVAL '2 weeks'),
     (2, 'Osnove snimanja zvuka', 'Kako dobiti čist zvuk bez profesionalnog mikrofona.', 'audio, recording, tips', '/media/videos/audio-basics.mp4', '/media/thumbs/audio-basics.jpg', NOW() - INTERVAL '1 day'),
     (3, 'ORGANISATION TIPS - kako planiram projekte', 'Kako planiram obaveze, ispite i projekte.', 'productivity, student, organization', '/media/videos/project-organization.mp4', '/media/thumbs/project-organization.jpg', NOW() - INTERVAL '6 days');
-
 
 -- COMMENTS
 INSERT INTO comments (post_id, author_id, text, created_at)
