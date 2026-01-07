@@ -34,6 +34,9 @@ public class User {
     @Column(length = 200)
     private String adress;
 
+    @Column(length = 30)
+    private String phoneNumber;
+
     // bio (opis)
     @Column(length = 500)
     private String bio;
@@ -45,7 +48,13 @@ public class User {
     @Column(nullable = false, length = 30)
     private String role = "USER";
 
-    protected User() {}
+    @Column(nullable = false)
+    private boolean active = false;
+
+    @Column(unique = true)
+    private String activationToken;
+
+    public User() {}
 
     public Long getId() { return id; }
 
@@ -66,6 +75,15 @@ public class User {
 
     public String getAdress() { return adress; }
     public void setAdress(String adress) { this.adress = adress; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+
+    public String getActivationToken() { return activationToken; }
+    public void setActivationToken(String activationToken) { this.activationToken = activationToken; }
 
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
