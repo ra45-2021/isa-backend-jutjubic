@@ -69,7 +69,6 @@ public class AuthService {
     }
 
     public String login(LoginDto dto, String ip) {
-        // 1. Provera IP blokade
         if (isIpBlocked(ip)) {
             throw new RuntimeException("Previše neuspelih pokušaja. Pokušajte ponovo za minut.");
         }

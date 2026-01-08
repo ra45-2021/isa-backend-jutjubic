@@ -61,6 +61,7 @@ public class CommentService {
                 .map(c -> new CommentViewDto(
                         c.getId(),
                         c.getAuthor().getUsername(),
+                        c.getAuthor().getProfileImageUrl(),
                         c.getCreatedAt(),
                         c.getText()
                 ))
@@ -114,6 +115,7 @@ public class CommentService {
         return new CommentViewDto(
                 saved.getId(),
                 author.getUsername(),
+                author.getProfileImageUrl(),
                 saved.getCreatedAt(),
                 saved.getText()
         );
