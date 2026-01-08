@@ -36,13 +36,6 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    @Bean
-    public MultipartFilter multipartFilter() {
-        MultipartFilter multipartFilter = new MultipartFilter();
-        multipartFilter.setMultipartResolverBeanName("multipartResolver");
-        return multipartFilter;
-    }
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -66,7 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/posts").permitAll()
+                        //.requestMatchers(HttpMethod.POST, "/api/posts").permitAll()
 
                         // static resources (important: explicit GET + HEAD)
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
@@ -80,7 +73,6 @@ public class SecurityConfig {
                         // everything else requires auth
                         .anyRequest().authenticated()
                 );
-        http.addFilterBefore(multipartFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

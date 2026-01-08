@@ -1,5 +1,6 @@
 package com.jutjubic.controller;
 
+import com.jutjubic.config.UploadProperties;
 import com.jutjubic.domain.Post;
 import com.jutjubic.dto.*;
 import com.jutjubic.repository.PostRepository;
@@ -21,6 +22,9 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,16 +37,18 @@ public class PostController {
     private final CommentService commentService;
     private final ThumbnailService thumbnailService;
     private final PostUploadService postUploadService;
+    private final UploadProperties uploadProperties;
 
     public PostController(
             PostRepository postRepository,
             CommentService commentService,
             ThumbnailService thumbnailService,
-            PostUploadService postUploadService) {
+            PostUploadService postUploadService, UploadProperties uploadProperties) {
         this.postRepository = postRepository;
         this.commentService = commentService;
         this.thumbnailService = thumbnailService;
         this.postUploadService = postUploadService;
+        this.uploadProperties = uploadProperties;
     }
 
     @GetMapping("/{postId}/thumbnail")
@@ -165,6 +171,41 @@ public class PostController {
                 part.write(dest.getAbsolutePath());
             }
         };
+    }
+
+    @GetMapping("/{postId}/video")
+    public ResponseEntity<byte[]> getVideo(@PathVariable Long postId) throws Exception {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        String videoUrl = post.getVideoUrl();
+        if (videoUrl == null || videoUrl.isBlank()) {
+            throw new RuntimeException("Video URL is empty");
+        }
+
+        // Extract filename
+        String videoFileName = Paths.get(videoUrl).getFileName().toString();
+
+        Path baseDir = Paths.get(uploadProperties.getDir());
+        if (!baseDir.isAbsolute()) {
+            baseDir = Paths.get(System.getProperty("user.dir")).resolve(baseDir);
+        }
+
+        Path filePath = baseDir
+                .resolve(uploadProperties.getVideosDir())
+                .resolve(videoFileName)
+                .toAbsolutePath()
+                .normalize();
+
+        if (!Files.exists(filePath)) {
+            throw new RuntimeException("Video file not found: " + filePath);
+        }
+
+        byte[] videoBytes = Files.readAllBytes(filePath);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("video/mp4"))
+                .body(videoBytes);
     }
 
     @GetMapping

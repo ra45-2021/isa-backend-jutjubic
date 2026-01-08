@@ -15,7 +15,7 @@ public class MultipartConfig {
         FilterRegistrationBean<MultipartFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MultipartFilter());
         registration.addUrlPatterns("/*");
-        registration.setOrder(Ordered.HIGHEST_PRECEDENCE); // MORA biti PRVO!
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return registration;
     }
 
