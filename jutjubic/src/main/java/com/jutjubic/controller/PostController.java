@@ -227,13 +227,18 @@ public class PostController {
                     .toList();
         }
 
+        // Thumbnail: API endpoint sa Spring kešom
+        String thumbnailUrl = "/api/posts/" + p.getId() + "/thumbnail";
+
+        String videoUrl = p.getVideoUrl(); // "/media/videos/xxx.mp4"
+
         return new PostViewDto(
                 p.getId(),
                 p.getTitle(),
                 p.getDescription(),
                 tags,
-                p.getVideoUrl(),
-                p.getThumbnailUrl(),
+                videoUrl,
+                thumbnailUrl,
                 p.getCreatedAt(),
                 new UserDto(
                         a.getId(),
