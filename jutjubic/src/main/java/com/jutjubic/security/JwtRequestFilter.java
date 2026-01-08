@@ -25,24 +25,28 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // Skip JWT validation for static resources
+        String path = request.getRequestURI();
+        if (path.startsWith("/uploads/") || path.startsWith("/media/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;
         String jwt = null;
 
-        // Token se šalje u formatu: "Bearer [token]"
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
             try {
-                // Izvlačimo email/username iz tokena koristeći tvoj JwtUtil
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                logger.warn("Nevalidan JWT token");
+                logger.warn("Invalid JWT token: " + e.getMessage());
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Ako je token ispravan, "ručno" postavljamo autentifikaciju u Spring kontekst
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     username, null, new ArrayList<>());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
