@@ -40,7 +40,7 @@ public class CommentService {
     )
     public CommentPageDto getComments(Long postId, int page, int size) {
         if (size < 1) size = 1;
-        if (size > 6) size = 6;
+        if (size > 2) size = 2;
         if (page < 0) page = 0;
 
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -49,7 +49,7 @@ public class CommentService {
         List<CommentViewDto> items = result.getContent().stream()
                 .map(c -> new CommentViewDto(
                         c.getId(),
-                        c.getAuthor().getUsername(),   // sada ne puca (session je otvoren u transakciji)
+                        c.getAuthor().getUsername(),
                         c.getCreatedAt(),
                         c.getText()
                 ))
