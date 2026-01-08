@@ -7,12 +7,18 @@ import com.jutjubic.dto.CommentViewDto;
 import com.jutjubic.repository.CommentRepository;
 import com.jutjubic.repository.PostRepository;
 import com.jutjubic.repository.UserRepository;
+import com.jutjubic.security.CommentRateLimiter;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.List;
 
@@ -22,16 +28,21 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommentRateLimiter commentRateLimiter;
+
 
     public CommentService(
             CommentRepository commentRepository,
             PostRepository postRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            CommentRateLimiter commentRateLimiter
     ) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.commentRateLimiter = commentRateLimiter;
     }
+
 
     @Transactional(readOnly = true)
     @Cacheable(
@@ -66,15 +77,48 @@ public class CommentService {
 
     @Transactional
     @CacheEvict(cacheNames = "postComments", allEntries = true)
-    public CommentViewDto addComment(Long postId, String authorUsername, String text) {
+    public CommentViewDto addComment(Long postId, String text) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        String authorEmail = authentication.getName();
+
+
         String t = text == null ? "" : text.trim();
-        if (t.isEmpty()) throw new IllegalArgumentException("Comment text is required");
+        if (t.isEmpty()) {
+            throw new IllegalArgumentException("Comment text is required");
+        }
 
         Post post = postRepository.findById(postId).orElseThrow();
-        var author = userRepository.findByUsername(authorUsername).orElseThrow();
+
+        var author = userRepository
+                .findByEmailAdress(authorEmail)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "User not found"
+                ));
+
+
+        if (!author.isActive()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "User is not active"
+            );
+        }
+        commentRateLimiter.assertAllowed(authorEmail);
 
         Comment saved = commentRepository.save(new Comment(post, author, t));
 
-        return new CommentViewDto(saved.getId(), author.getUsername(), saved.getCreatedAt(), saved.getText());
+        return new CommentViewDto(
+                saved.getId(),
+                author.getUsername(),
+                saved.getCreatedAt(),
+                saved.getText()
+        );
     }
+
+
+
 }

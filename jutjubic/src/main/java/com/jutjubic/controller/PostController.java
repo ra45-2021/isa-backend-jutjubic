@@ -18,6 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +64,6 @@ public class PostController {
     @PostMapping
     public ResponseEntity<?> createPost(HttpServletRequest request) throws Exception {
 
-        // Pronađi MultipartHttpServletRequest u lancu wrappera
         MultipartHttpServletRequest multipartRequest = null;
         HttpServletRequest currentRequest = request;
 
@@ -82,7 +83,6 @@ public class PostController {
             return ResponseEntity.badRequest().body("Cannot process multipart request");
         }
 
-        // Extract files using Parts API
         MultipartFile thumbnail = null;
         MultipartFile video = null;
 
@@ -100,7 +100,6 @@ public class PostController {
             return ResponseEntity.badRequest().body("Error processing file uploads: " + e.getMessage());
         }
 
-        // Extract parameters
         String title = request.getParameter("title");
         String description = request.getParameter("description");
         String tags = request.getParameter("tags");
@@ -118,7 +117,6 @@ public class PostController {
             locationLon = Double.parseDouble(lonParam);
         }
 
-        // Get authenticated user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
 
@@ -183,7 +181,6 @@ public class PostController {
             throw new RuntimeException("Video URL is empty");
         }
 
-        // Extract filename
         String videoFileName = Paths.get(videoUrl).getFileName().toString();
 
         Path baseDir = Paths.get(uploadProperties.getDir());
@@ -210,51 +207,15 @@ public class PostController {
 
     @GetMapping
     public List<PostViewDto> getAllPosts() {
-        return postRepository.findAllWithAuthorNewestFirst()
-                .stream()
-                .map(this::toViewDto)
-                .toList();
+        return postRepository.findAllPostViewsNewestFirst();
     }
 
-    private PostViewDto toViewDto(Post p) {
-        var a = p.getAuthor();
-
-        List<String> tags = List.of();
-        if (p.getTags() != null && !p.getTags().isBlank()) {
-            tags = Arrays.stream(p.getTags().split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isBlank())
-                    .toList();
-        }
-
-        // Thumbnail: API endpoint sa Spring kešom
-        String thumbnailUrl = "/api/posts/" + p.getId() + "/thumbnail";
-
-        String videoUrl = p.getVideoUrl(); // "/media/videos/xxx.mp4"
-
-        return new PostViewDto(
-                p.getId(),
-                p.getTitle(),
-                p.getDescription(),
-                tags,
-                videoUrl,
-                thumbnailUrl,
-                p.getCreatedAt(),
-                new UserDto(
-                        a.getId(),
-                        a.getUsername(),
-                        a.getName(),
-                        a.getSurname(),
-                        a.getProfileImageUrl()
-                )
-        );
-    }
 
     @GetMapping("/{postId}/comments")
     public CommentPageDto getComments(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "2") int size
     ) {
         return commentService.getComments(postId, page, size);
     }
@@ -262,9 +223,14 @@ public class PostController {
     @PostMapping("/{postId}/comments")
     public CommentViewDto addComment(
             @PathVariable Long postId,
-            @RequestParam String authorUsername,
-            @RequestBody CreateCommentRequestDto req
+            @RequestBody CreateCommentRequestDto req,
+            Authentication authentication
     ) {
-        return commentService.addComment(postId, authorUsername, req.getText());
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        return commentService.addComment(postId, req.getText());
     }
+
 }

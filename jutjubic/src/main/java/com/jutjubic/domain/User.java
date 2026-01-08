@@ -10,38 +10,30 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // korisničko ime
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    // lozinka (plain for now as you requested; later hash this)
     @Column(nullable = false, length = 200)
     private String password;
 
-    // email adresa
     @Column(nullable = false, unique = true, length = 120)
     private String emailAdress;
 
-    // ime
     @Column(nullable = false, length = 60)
     private String name;
 
-    // prezime
     @Column(nullable = false, length = 60)
     private String surname;
 
-    // adresa
     @Column(length = 200)
     private String adress;
 
     @Column(length = 30)
     private String phoneNumber;
 
-    // bio (opis)
     @Column(length = 500)
     private String bio;
 
-    // optional: URL to image (if null/empty -> frontend uses assets/profile.png)
     @Column(length = 500)
     private String profileImageUrl;
 

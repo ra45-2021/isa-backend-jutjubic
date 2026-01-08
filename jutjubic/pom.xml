@@ -15,8 +15,8 @@
     <groupId>com.jutjubic</groupId>
     <artifactId>jutjubic</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>jutjubic</name>
-    <description>ISA jutjubic project</description>
+    <name>com</name>
+    <description>ISA com project</description>
 
     <properties>
         <java.version>21</java.version>
