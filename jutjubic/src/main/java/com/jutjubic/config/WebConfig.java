@@ -17,8 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
         String rootPath = System.getProperty("user.dir");
 
         // Putanja do 'uploads' foldera (univerzalno rešavamo kose crte)
-        Path uploadsPath = Paths.get(rootPath, "jutjubic", "uploads").toAbsolutePath().normalize();
-        String location = "file:///" + uploadsPath.toString().replace("\\", "/") + "/";
+        Path uploadsPath = Paths.get(rootPath, "uploads").toAbsolutePath().normalize();
+        String location = uploadsPath.toUri().toString();
 
         // Mapiramo /uploads/** tako da gleda dubinski u sve podfoldere (thumbs, videos...)
         registry.addResourceHandler("/uploads/**", "/media/**")

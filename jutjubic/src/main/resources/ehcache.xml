@@ -13,4 +13,17 @@
         </resources>
     </cache>
 
+    <cache alias="thumbnails">
+        <key-type>java.lang.Long</key-type>
+        <value-type>[B</value-type>
+
+        <expiry>
+            <ttl unit="seconds">30</ttl>
+        </expiry>
+
+        <resources>
+            <heap unit="entries">500</heap>
+        </resources>
+    </cache>
+
 </config>

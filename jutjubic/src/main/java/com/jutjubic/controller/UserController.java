@@ -4,6 +4,8 @@ import com.jutjubic.domain.User;
 import com.jutjubic.dto.UserDto;
 import com.jutjubic.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +25,13 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(auth.getName());
+    }
+
 
     private UserDto toDto(User u) {
         return new UserDto(
