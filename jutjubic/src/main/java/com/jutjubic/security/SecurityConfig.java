@@ -9,23 +9,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 
 import java.util.Arrays;
 
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.multipart.support.MultipartFilter;
 
 @Configuration
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/uploads/**", "/media/**");
-    }
 
     public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
@@ -36,7 +29,6 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -44,7 +36,7 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
                     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+                    config.setAllowedHeaders(Arrays.asList("*"));
                     config.setAllowCredentials(true);
                     return config;
                 }))
@@ -52,27 +44,23 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(auth -> auth
-                        // auth endpoints public
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/auth/**")).permitAll()
+                        // Static resources - MORA biti PRVO!
+                        .requestMatchers("/uploads/**", "/media/**").permitAll()
 
-                        // public GET endpoints
+                        // Auth endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Public GET endpoints
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
-                        //.requestMatchers(HttpMethod.POST, "/api/posts").permitAll()
-
-                        // static resources (important: explicit GET + HEAD)
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.HEAD, "/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
-                        .requestMatchers(HttpMethod.HEAD, "/media/**").permitAll()
-
-                        // preflight
+                        // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // everything else requires auth
+                        // Everything else requires auth
                         .anyRequest().authenticated()
                 );
+
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

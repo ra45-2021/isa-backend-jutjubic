@@ -90,8 +90,11 @@ public class PostUploadService {
             finalThumb = finals.thumbPath();
 
             // 4) setuj stabilne API URL-ove (frontend će koristiti ove endpoint-e)
-            saved.setVideoUrl("/api/posts/" + saved.getId() + "/video");
-            saved.setThumbnailUrl("/api/posts/" + saved.getId() + "/thumbnail");
+            String videoFileName = finals.videoPath().getFileName().toString();
+            String thumbFileName = finals.thumbPath().getFileName().toString();
+
+            saved.setVideoUrl("/media/videos/" + videoFileName);
+            saved.setThumbnailUrl("/media/thumbs/" + thumbFileName);
 
             // 5) cleanup temp (ako moveToFinal radi copy umesto move)
             storage.deleteIfExists(temp.tempVideo());
