@@ -233,4 +233,10 @@ public class PostController {
         return commentService.addComment(postId, req.getText());
     }
 
+    @GetMapping("/by-user/{username}")
+    public List<PostViewDto> postsByUser(@PathVariable String username) {
+        return postRepository.findAllPostViewsByUsernameNewestFirst(username);
+    }
+
+
 }
