@@ -9,7 +9,6 @@ public class LoginDto {
     @NotBlank(message = "Lozinka je obavezna")
     private String password;
 
-    // Getteri i Setteri
     public String getEmailAdress() { return email; }
     public void setEmailAdress(String email) { this.email = email; }
     public String getPassword() { return password; }

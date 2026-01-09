@@ -32,7 +32,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto, HttpServletRequest request) {
         try {
-            // Uzimamo IP adresu korisnika
             String ip = request.getRemoteAddr();
             String token = authService.login(loginDto, ip);
             return ResponseEntity.ok().body("{\"token\": \"" + token + "\"}");
