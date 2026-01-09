@@ -61,7 +61,7 @@ public class AuthService {
 
     public void activateUser(String token) {
         User user = userRepository.findByActivationToken(token)
-                .orElseThrow(() -> new RuntimeException("Nevalidan aktivacioni token!"));
+                .orElseThrow(() -> new RuntimeException("Activation token not valid!"));
 
         user.setActive(true);
         user.setActivationToken(null); // Brišemo token jer je upotrebljen
@@ -69,21 +69,20 @@ public class AuthService {
     }
 
     public String login(LoginDto dto, String ip) {
-        // 1. Provera IP blokade
         if (isIpBlocked(ip)) {
-            throw new RuntimeException("Previše neuspelih pokušaja. Pokušajte ponovo za minut.");
+            throw new RuntimeException("Too many failed attempts. Try again in 1 minute!.");
         }
 
         try {
             User user = userRepository.findByEmailAdress(dto.getEmailAdress())
-                    .orElseThrow(() -> new RuntimeException("Pogrešno korisničko ime ili lozinka!"));
+                    .orElseThrow(() -> new RuntimeException("Invalid username or password!"));
 
             if (!user.isActive()) {
-                throw new RuntimeException("Nalog nije aktiviran. Proverite email.");
+                throw new RuntimeException("Account isn't activated! Check you email.");
             }
 
             if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-                throw new RuntimeException("Pogrešno korisničko ime ili lozinka!");
+                throw new RuntimeException("Invalid username or password!");
             }
 
             // Ako je login uspešan, resetuj brojač za tu IP adresu

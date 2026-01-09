@@ -18,8 +18,8 @@ public class EmailService {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Aktivacija naloga - Jutjubic");
-        message.setText("Poštovani, \n\nKliknite na link ispod da biste aktivirali svoj nalog:\n" + activationUrl);
+        message.setSubject("Account Activation - Jutjubić");
+        message.setText("Welcome to Jutjubić! \n\n\n Please click the link below to activate your account:\n" + activationUrl + "\n\n\n Thank you for using our services! \n\n\n Regards,\n Team 26");
 
         mailSender.send(message);
     }

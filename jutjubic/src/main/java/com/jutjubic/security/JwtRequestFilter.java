@@ -25,7 +25,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // Skip JWT validation for static resources
         String path = request.getRequestURI();
         if (path.startsWith("/uploads/") || path.startsWith("/media/")) {
             chain.doFilter(request, response);

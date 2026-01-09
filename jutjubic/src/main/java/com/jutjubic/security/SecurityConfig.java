@@ -44,20 +44,15 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(auth -> auth
-                        // Static resources - MORA biti PRVO!
                         .requestMatchers("/uploads/**", "/media/**").permitAll()
 
-                        // Auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // Public GET endpoints
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
-                        // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Everything else requires auth
                         .anyRequest().authenticated()
                 );
 

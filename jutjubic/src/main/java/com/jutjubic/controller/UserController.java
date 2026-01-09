@@ -3,6 +3,7 @@ package com.jutjubic.controller;
 import com.jutjubic.domain.User;
 import com.jutjubic.dto.UserDto;
 import com.jutjubic.repository.UserRepository;
+import com.jutjubic.service.CurrentUserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserRepository users;
+    private final CurrentUserService currentUser;
 
-    public UserController(UserRepository users) {
+    public UserController(UserRepository users, CurrentUserService currentUser) {
         this.users = users;
+        this.currentUser = currentUser;
     }
 
     @GetMapping("/{username}")
@@ -27,9 +30,9 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return ResponseEntity.ok(auth.getName());
+    public ResponseEntity<UserDto> me() {
+        User u = currentUser.require();
+        return ResponseEntity.ok(toDto(u));
     }
 
 
