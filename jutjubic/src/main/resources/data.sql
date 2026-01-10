@@ -6,14 +6,14 @@ VALUES
     ('jana_p',    '{noop}pass', 'jana_p@mail.com', 'Jana', 'Petrović', 'Cara Dušana 8, Niš', 'Video editor + content. Montaža, rezovi i titlovi.', 'USER', '/uploads/jana-profile.png', true, '');
 
 -- POSTS
-INSERT INTO posts (author_id, title, description, tags_text, video_url, thumbnail_url, created_at, location_lat, location_lon)
+INSERT INTO posts (author_id, title, description, tags_text, video_url, thumbnail_url, created_at, location_lat, location_lon, view_count)
 VALUES
-    (1, 'Fruška gora VLOG', 'Kampovanje 5 dana u šumi na Fruškoj gori.', 'vlog, priroda, planinarenje', '/media/videos/fruska-gora.mp4', '/media/thumbs/fruska-gora.jpg', NOW() - INTERVAL '299 days', 45.1566, 19.8066),
-    (2, 'Intro to SpringBoot', 'Coding for beginners - SpringBoot','spring, jwt, backend', '/media/videos/jwt-spring.mp4', '/media/thumbs/jwt-spring.jpg', NOW() - INTERVAL '3 days', 44.8125, 20.4612),
-    (3, 'Montaža thumbnaila za početnike', '3 trika da video izgleda čistije i profesionalnije.','video-editing, capcut', '/media/videos/editing-basics.mp4', '/media/thumbs/editing-basics.jpg', NOW() - INTERVAL '5 hours', 43.3209, 21.8958),
-    (1, 'TOP 10 Mesta u Budimpešti', 'Top mesta + saveti za prevoz i budžet.', 'tips, guide, budapest','/media/videos/budapest-guide.mp4', '/media/thumbs/budapest-guide.jpg', NOW() - INTERVAL '2 weeks', 47.4979, 19.0402),
-    (2, 'Osnove snimanja zvuka', 'Kako dobiti čist zvuk bez profesionalnog mikrofona.', 'audio, recording, tips', '/media/videos/audio-basics.mp4', '/media/thumbs/audio-basics.jpg', NOW() - INTERVAL '1 day', 44.8125, 20.4612),
-    (3, 'ORGANISATION TIPS - kako planiram projekte', 'Kako planiram obaveze, ispite i projekte.', 'productivity, student, organization', '/media/videos/project-organization.mp4', '/media/thumbs/project-organization.jpg', NOW() - INTERVAL '6 days', 43.3209, 21.8958);
+    (1, 'Fruška gora VLOG', 'Kampovanje 5 dana u šumi na Fruškoj gori.', 'vlog, priroda, planinarenje', '/media/videos/fruska-gora.mp4', '/media/thumbs/fruska-gora.jpg', NOW() - INTERVAL '299 days', 45.1566, 19.8066,12),
+    (2, 'Intro to SpringBoot', 'Coding for beginners - SpringBoot','spring, jwt, backend', '/media/videos/jwt-spring.mp4', '/media/thumbs/jwt-spring.jpg', NOW() - INTERVAL '3 days', 44.8125, 20.4612,15),
+    (3, 'Montaža thumbnaila za početnike', '3 trika da video izgleda čistije i profesionalnije.','video-editing, capcut', '/media/videos/editing-basics.mp4', '/media/thumbs/editing-basics.jpg', NOW() - INTERVAL '5 hours', 43.3209, 21.8958,100),
+    (1, 'TOP 10 Mesta u Budimpešti', 'Top mesta + saveti za prevoz i budžet.', 'tips, guide, budapest','/media/videos/budapest-guide.mp4', '/media/thumbs/budapest-guide.jpg', NOW() - INTERVAL '2 weeks', 47.4979, 19.0402,150),
+    (2, 'Osnove snimanja zvuka', 'Kako dobiti čist zvuk bez profesionalnog mikrofona.', 'audio, recording, tips', '/media/videos/audio-basics.mp4', '/media/thumbs/audio-basics.jpg', NOW() - INTERVAL '1 day', 44.8125, 20.4612,0),
+    (3, 'ORGANISATION TIPS - kako planiram projekte', 'Kako planiram obaveze, ispite i projekte.', 'productivity, student, organization', '/media/videos/project-organization.mp4', '/media/thumbs/project-organization.jpg', NOW() - INTERVAL '6 days', 43.3209, 21.8958, 36);
 
 -- COMMENTS
 INSERT INTO comments (post_id, author_id, text, created_at)
