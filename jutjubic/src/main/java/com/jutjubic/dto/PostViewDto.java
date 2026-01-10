@@ -16,6 +16,7 @@ public class PostViewDto {
     private Long commentCount;
     private Long likeCount;
     private Boolean likedByMe;
+    private Long view_count;
 
 
     public PostViewDto(
@@ -29,7 +30,8 @@ public class PostViewDto {
             UserDto author,
             Long commentCount,
             Long likeCount,
-            Boolean likedByMe
+            Boolean likedByMe,
+            Long view_count
     ) {
         this.id = id;
         this.title = title;
@@ -42,6 +44,7 @@ public class PostViewDto {
         this.commentCount = commentCount;
         this.likeCount = likeCount;
         this.likedByMe = likedByMe;
+        this.view_count = view_count;
     }
 
     public PostViewDto(
@@ -61,7 +64,8 @@ public class PostViewDto {
 
             Long commentCount,
             Long likeCount,
-            Boolean likedByMe
+            Boolean likedByMe,
+            Long view_count
     ) {
         this.id = id;
         this.title = title;
@@ -91,6 +95,7 @@ public class PostViewDto {
         this.commentCount = commentCount;
         this.likeCount = likeCount;
         this.likedByMe = likedByMe;
+        this.view_count = view_count;
     }
 
 
@@ -106,5 +111,6 @@ public class PostViewDto {
     public Long getCommentCount() { return commentCount; }
     public Long getLikeCount() { return likeCount; }
     public Boolean getLikedByMe() { return likedByMe; }
+    public Long getViewCount() { return view_count; }
 
 }

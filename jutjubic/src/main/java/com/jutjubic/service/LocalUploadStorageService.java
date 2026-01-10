@@ -14,6 +14,7 @@ import java.util.UUID;
 public class LocalUploadStorageService {
 
     private final UploadProperties props;
+    private boolean testSlowMode = false;
 
     public LocalUploadStorageService(UploadProperties props) {
         this.props = props;
@@ -105,6 +106,18 @@ public class LocalUploadStorageService {
 
     private void copyWithTimeout(InputStream input, Path target, long timeoutSeconds) throws IOException {
         Instant start = Instant.now();
+
+        //  Simuliraj upload koji traje 21 sekundi
+        if (testSlowMode) {
+            try {
+                System.out.println("TEST SLOW MODE: Waiting 21 seconds to simulate slow upload...");
+                Thread.sleep(21000); // 21 sekundi
+                System.out.println("TEST SLOW MODE: Sleep finished, now checking timeout...");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Upload interrupted", e);
+            }
+        }
 
         try (BufferedInputStream in = new BufferedInputStream(input);
              OutputStream out = Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {

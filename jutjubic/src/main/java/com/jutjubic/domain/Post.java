@@ -66,6 +66,11 @@ public class Post {
     @Column(name = "location_lon")
     private Double locationLon;
 
+    @Setter
+    @Getter
+    @Column(name = "view_count", nullable = false)
+    private Long viewCount = 0L;
+
     public Post() {
     }
 

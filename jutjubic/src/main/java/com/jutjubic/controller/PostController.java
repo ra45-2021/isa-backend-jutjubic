@@ -5,6 +5,7 @@ import com.jutjubic.domain.Post;
 import com.jutjubic.dto.*;
 import com.jutjubic.repository.PostRepository;
 import com.jutjubic.service.CommentService;
+import com.jutjubic.service.PostService;
 import com.jutjubic.service.PostUploadService;
 import com.jutjubic.service.ThumbnailService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +47,7 @@ public class PostController {
     private final UploadProperties uploadProperties;
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostService postService;
 
     public PostController(
             PostRepository postRepository,
@@ -54,7 +56,7 @@ public class PostController {
             PostUploadService postUploadService,
             UploadProperties uploadProperties,
             UserRepository userRepository,
-            PostLikeRepository postLikeRepository) {
+            PostLikeRepository postLikeRepository, PostService postService) {
         this.postRepository = postRepository;
         this.commentService = commentService;
         this.thumbnailService = thumbnailService;
@@ -62,6 +64,7 @@ public class PostController {
         this.uploadProperties = uploadProperties;
         this.userRepository = userRepository;
         this.postLikeRepository = postLikeRepository;
+        this.postService = postService;
     }
 
     @GetMapping("/{postId}/thumbnail")
@@ -186,6 +189,10 @@ public class PostController {
     public ResponseEntity<byte[]> getVideo(@PathVariable Long postId) throws Exception {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // Inkrementiraj brojač pregleda
+        postService.incrementViewCount(postId);
+
 
         String videoUrl = post.getVideoUrl();
         if (videoUrl == null || videoUrl.isBlank()) {
