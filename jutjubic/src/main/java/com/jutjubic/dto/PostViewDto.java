@@ -14,6 +14,8 @@ public class PostViewDto {
     private Instant createdAt;
     private UserDto author;
     private Long commentCount;
+    private Long likeCount;
+    private Boolean likedByMe;
 
 
     public PostViewDto(
@@ -25,7 +27,9 @@ public class PostViewDto {
             String thumbnailUrl,
             Instant createdAt,
             UserDto author,
-            Long commentCount
+            Long commentCount,
+            Long likeCount,
+            Boolean likedByMe
     ) {
         this.id = id;
         this.title = title;
@@ -36,6 +40,8 @@ public class PostViewDto {
         this.createdAt = createdAt;
         this.author = author;
         this.commentCount = commentCount;
+        this.likeCount = likeCount;
+        this.likedByMe = likedByMe;
     }
 
     public PostViewDto(
@@ -53,7 +59,9 @@ public class PostViewDto {
             String authorSurname,
             String authorProfileImageUrl,
 
-            Long commentCount
+            Long commentCount,
+            Long likeCount,
+            Boolean likedByMe
     ) {
         this.id = id;
         this.title = title;
@@ -81,6 +89,8 @@ public class PostViewDto {
         );
 
         this.commentCount = commentCount;
+        this.likeCount = likeCount;
+        this.likedByMe = likedByMe;
     }
 
 
@@ -94,5 +104,7 @@ public class PostViewDto {
     public Instant getCreatedAt() { return createdAt; }
     public UserDto getAuthor() { return author; }
     public Long getCommentCount() { return commentCount; }
+    public Long getLikeCount() { return likeCount; }
+    public Boolean getLikedByMe() { return likedByMe; }
 
 }

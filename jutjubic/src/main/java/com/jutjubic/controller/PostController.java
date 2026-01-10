@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
+import com.jutjubic.domain.*;
+import com.jutjubic.repository.*;
+import java.util.Map;
+import java.security.Principal;
 
 
 import java.io.File;
@@ -40,17 +44,24 @@ public class PostController {
     private final ThumbnailService thumbnailService;
     private final PostUploadService postUploadService;
     private final UploadProperties uploadProperties;
+    private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
 
     public PostController(
             PostRepository postRepository,
             CommentService commentService,
             ThumbnailService thumbnailService,
-            PostUploadService postUploadService, UploadProperties uploadProperties) {
+            PostUploadService postUploadService,
+            UploadProperties uploadProperties,
+            UserRepository userRepository,
+            PostLikeRepository postLikeRepository) {
         this.postRepository = postRepository;
         this.commentService = commentService;
         this.thumbnailService = thumbnailService;
         this.postUploadService = postUploadService;
         this.uploadProperties = uploadProperties;
+        this.userRepository = userRepository;
+        this.postLikeRepository = postLikeRepository;
     }
 
     @GetMapping("/{postId}/thumbnail")
@@ -206,8 +217,9 @@ public class PostController {
     }
 
     @GetMapping
-    public List<PostViewDto> getAllPosts() {
-        return postRepository.findAllPostViewsNewestFirst();
+    public List<PostViewDto> getAllPosts(Authentication auth) {
+        String currentUsername = (auth != null) ? auth.getName() : null;
+        return postRepository.findAllPostViewsNewestFirst(currentUsername);
     }
 
 
@@ -234,8 +246,44 @@ public class PostController {
     }
 
     @GetMapping("/by-user/{username}")
-    public List<PostViewDto> postsByUser(@PathVariable String username) {
-        return postRepository.findAllPostViewsByUsernameNewestFirst(username);
+    public List<PostViewDto> postsByUser(@PathVariable String username, Authentication auth) {
+        String currentUsername = (auth != null) ? auth.getName() : null;
+        return postRepository.findAllPostViewsByUsernameNewestFirst(username, currentUsername);
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostViewDto> getPost(@PathVariable Long postId, Authentication auth) {
+        String currentUsername = (auth != null) ? auth.getName() : null;
+        return postRepository.findPostViewByPostId(postId, currentUsername)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<?> toggleLike(@PathVariable Long postId, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = userRepository.findByEmailAdress(auth.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        PostLikeId likeId = new PostLikeId(post.getId(), user.getId());
+
+        boolean alreadyLiked = postLikeRepository.existsById(likeId);
+        if (alreadyLiked) {
+            postLikeRepository.deleteById(likeId);
+        } else {
+            postLikeRepository.save(new PostLike(post, user));
+        }
+
+        long count = postLikeRepository.countByPostId(postId);
+        return ResponseEntity.ok(Map.of(
+                "likes", count,
+                "isLiked", !alreadyLiked
+        ));
     }
 
 
