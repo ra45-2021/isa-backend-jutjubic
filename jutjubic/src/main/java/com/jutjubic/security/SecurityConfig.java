@@ -45,14 +45,13 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/uploads/**", "/media/**").permitAll()
-
                         .requestMatchers("/api/auth/**").permitAll()
-
+                        .requestMatchers(HttpMethod.POST, "/api/posts/*/like").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/*/comments").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
                         .anyRequest().authenticated()
                 );
 

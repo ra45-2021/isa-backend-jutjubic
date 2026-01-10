@@ -29,3 +29,11 @@ VALUES
     (5, 3, 'Jednostavno i jasno objašnjeno, svaka čast!', NOW() - INTERVAL '18 hours'),
     (6, 2, 'Ovakva organizacija mi stvarno treba za faks.', NOW() - INTERVAL '4 days'),
     (6, 3, 'Drago mi je ako znači! Bez plana nema mira 😄', NOW() - INTERVAL '3 days');
+
+-- POST_LIKES
+INSERT INTO post_likes (post_id, user_id)
+VALUES
+    (1, 2), -- Marko lajkuje Anin VLOG
+    (1, 3), -- Jana lajkuje Anin VLOG
+    (2, 1), -- Ana lajkuje Markov SpringBoot tutorial
+    (5, 3); -- Jana lajkuje Markov video o zvuku
