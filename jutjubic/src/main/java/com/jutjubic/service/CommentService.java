@@ -51,7 +51,7 @@ public class CommentService {
     )
     public CommentPageDto getComments(Long postId, int page, int size) {
         if (size < 1) size = 1;
-        if (size > 2) size = 2;
+        if (size > 10) size = 10;
         if (page < 0) page = 0;
 
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));

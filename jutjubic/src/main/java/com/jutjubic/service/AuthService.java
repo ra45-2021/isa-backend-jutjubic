@@ -48,7 +48,6 @@ public class AuthService {
         user.setSurname(dto.getSurname());
         user.setAdress(dto.getAdress());
         user.setPhoneNumber(dto.getPhoneNumber());
-        user.setRole("USER");
         user.setActive(false);
         user.setActivationToken(UUID.randomUUID().toString());
 

@@ -45,7 +45,6 @@ public class UserController {
                 u.getSurname(),
                 u.getAdress(),
                 u.getBio(),
-                u.getRole(),
                 u.getProfileImageUrl()
         );
     }

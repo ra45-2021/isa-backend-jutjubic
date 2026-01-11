@@ -37,9 +37,6 @@ public class User {
     @Column(length = 500)
     private String profileImageUrl;
 
-    @Column(nullable = false, length = 30)
-    private String role = "USER";
-
     @Column(nullable = false)
     private boolean active = false;
 
@@ -83,6 +80,4 @@ public class User {
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
 }
