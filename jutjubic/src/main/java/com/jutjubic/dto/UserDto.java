@@ -8,11 +8,10 @@ public class UserDto {
     private String surname;
     private String adress;
     private String bio;
-    private String role;
     private String profileImageUrl;
 
     public UserDto(Long id, String username, String emailAdress, String name, String surname,
-                   String adress, String bio, String role, String profileImageUrl) {
+                   String adress, String bio, String profileImageUrl) {
         this.id = id;
         this.username = username;
         this.emailAdress = emailAdress;
@@ -20,7 +19,6 @@ public class UserDto {
         this.surname = surname;
         this.adress = adress;
         this.bio = bio;
-        this.role = role;
         this.profileImageUrl = profileImageUrl;
     }
 
@@ -39,6 +37,5 @@ public class UserDto {
     public String getSurname() { return surname; }
     public String getAdress() { return adress; }
     public String getBio() { return bio; }
-    public String getRole() { return role; }
     public String getProfileImageUrl() { return profileImageUrl; }
 }
