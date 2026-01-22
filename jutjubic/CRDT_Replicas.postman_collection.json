@@ -1,0 +1,344 @@
+{
+  "info": {
+    "name": "CRDT Replicas Testing",
+    "description": "Test collection za CRDT video preglede sa dve replike",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Replica 1 Tests",
+      "item": [
+        {
+          "name": "1. Get All Posts (Replica 1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Watch Video 1 (Replica 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is video file\", function () {",
+                  "    pm.response.to.have.header('Content-Type');",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('video');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/1/video",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts", "1", "video"]
+            },
+            "description": "Ovaj endpoint inkrementira CRDT brojač u video_view_crdt_replica1 tabeli"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get CRDT Views for Video 1 (Replica 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has videoId\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('videoId');",
+                  "    pm.expect(jsonData.videoId).to.eql(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has totalViews\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('totalViews');",
+                  "    pm.expect(jsonData.totalViews).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has replicaViews array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('replicaViews');",
+                  "    pm.expect(jsonData.replicaViews).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/1/crdt-views",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts", "1", "crdt-views"]
+            },
+            "description": "Vraća CRDT brojač pregleda za video 1 iz video_view_crdt_replica1 tabele"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Watch Video 2 (Replica 1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/2/video",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts", "2", "video"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get CRDT Views for Video 2 (Replica 1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/2/crdt-views",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts", "2", "crdt-views"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Replica 2 Tests",
+      "item": [
+        {
+          "name": "1. Get All Posts (Replica 2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Watch Video 1 (Replica 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is video file\", function () {",
+                  "    pm.response.to.have.header('Content-Type');",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('video');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/1/video",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts", "1", "video"]
+            },
+            "description": "Ovaj endpoint inkrementira CRDT brojač u video_view_crdt_replica2 tabeli"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get CRDT Views for Video 1 (Replica 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has videoId\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('videoId');",
+                  "    pm.expect(jsonData.videoId).to.eql(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has totalViews\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('totalViews');",
+                  "    pm.expect(jsonData.totalViews).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Replica ID is replica_2\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.replicaViews[0].replicaId).to.include('replica_2');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/1/crdt-views",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts", "1", "crdt-views"]
+            },
+            "description": "Vraća CRDT brojač pregleda za video 1 iz video_view_crdt_replica2 tabele"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Watch Video 2 (Replica 2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/2/video",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts", "2", "video"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get CRDT Views for Video 2 (Replica 2)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/2/crdt-views",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts", "2", "crdt-views"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Load Testing",
+      "item": [
+        {
+          "name": "Replica 1 - Watch Video 1 (x10)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/1/video",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts", "1", "video"]
+            },
+            "description": "Pozovi ovaj endpoint 10 puta koristeći Collection Runner"
+          },
+          "response": []
+        },
+        {
+          "name": "Replica 2 - Watch Video 1 (x10)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/1/video",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts", "1", "video"]
+            },
+            "description": "Pozovi ovaj endpoint 10 puta koristeći Collection Runner"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comparison Test",
+      "item": [
+        {
+          "name": "Get CRDT Views from Replica 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/1/crdt-views",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "posts", "1", "crdt-views"]
+            },
+            "description": "Replika 1 čita samo iz video_view_crdt_replica1"
+          },
+          "response": []
+        },
+        {
+          "name": "Get CRDT Views from Replica 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/1/crdt-views",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "posts", "1", "crdt-views"]
+            },
+            "description": "Replika 2 čita samo iz video_view_crdt_replica2"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

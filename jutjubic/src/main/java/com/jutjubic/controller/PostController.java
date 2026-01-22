@@ -8,6 +8,7 @@ import com.jutjubic.service.CommentService;
 import com.jutjubic.service.PostService;
 import com.jutjubic.service.PostUploadService;
 import com.jutjubic.service.ThumbnailService;
+import com.jutjubic.service.VideoViewCrdtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.Part;
@@ -48,6 +49,7 @@ public class PostController {
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostService postService;
+    private final VideoViewCrdtService videoViewCrdtService;
 
     public PostController(
             PostRepository postRepository,
@@ -56,7 +58,9 @@ public class PostController {
             PostUploadService postUploadService,
             UploadProperties uploadProperties,
             UserRepository userRepository,
-            PostLikeRepository postLikeRepository, PostService postService) {
+            PostLikeRepository postLikeRepository,
+            PostService postService,
+            VideoViewCrdtService videoViewCrdtService) {
         this.postRepository = postRepository;
         this.commentService = commentService;
         this.thumbnailService = thumbnailService;
@@ -65,6 +69,7 @@ public class PostController {
         this.userRepository = userRepository;
         this.postLikeRepository = postLikeRepository;
         this.postService = postService;
+        this.videoViewCrdtService = videoViewCrdtService;
     }
 
     @GetMapping("/{postId}/thumbnail")
@@ -190,8 +195,12 @@ public class PostController {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Inkrementiraj brojač pregleda
+        // Inkrementiraj brojač pregleda (stari sistem)
         postService.incrementViewCount(postId);
+
+        // Inkrementiraj CRDT brojač za ovu repliku
+        // TODO: Ovo će kolega implementirati sa punom G-counter logikom i sync mehanizmom
+        videoViewCrdtService.incrementViewForReplica(postId);
 
 
         String videoUrl = post.getVideoUrl();
@@ -221,6 +230,27 @@ public class PostController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("video/mp4"))
                 .body(videoBytes);
+    }
+
+    /**
+     * Endpoint za čitanje CRDT brojača pregleda.
+     * Vraća ukupan broj pregleda (zbir svih replika) i detalje po replikama.
+     *
+     * TODO: Ovaj endpoint će biti korišćen za demonstraciju konzistentnosti
+     * Pokazuje da li replike imaju iste vrednosti nakon sinhronizacije.
+     */
+    @GetMapping("/{postId}/crdt-views")
+    public ResponseEntity<?> getCrdtViews(@PathVariable Long postId) {
+        Long totalViews = videoViewCrdtService.getTotalViewCount(postId);
+        var counters = videoViewCrdtService.getAllCountersForVideo(postId);
+        String currentReplicaId = videoViewCrdtService.getReplicaId();
+
+        return ResponseEntity.ok(Map.of(
+            "videoId", postId,
+            "totalViews", totalViews,
+            "currentReplica", currentReplicaId,
+            "countersPerReplica", counters
+        ));
     }
 
     @GetMapping
