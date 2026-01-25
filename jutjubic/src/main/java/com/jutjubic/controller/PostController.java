@@ -25,6 +25,10 @@ import com.jutjubic.domain.*;
 import com.jutjubic.repository.*;
 import java.util.Map;
 import java.security.Principal;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 
 import java.io.File;
@@ -71,6 +75,7 @@ public class PostController {
         this.postService = postService;
         this.videoViewCrdtService = videoViewCrdtService;
     }
+
 
     @GetMapping("/{postId}/thumbnail")
     public ResponseEntity<byte[]> getThumbnail(@PathVariable Long postId) throws Exception {
@@ -195,14 +200,6 @@ public class PostController {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Inkrementiraj brojač pregleda (stari sistem)
-        postService.incrementViewCount(postId);
-
-        // Inkrementiraj CRDT brojač za ovu repliku
-        // TODO: Ovo će kolega implementirati sa punom G-counter logikom i sync mehanizmom
-        videoViewCrdtService.incrementViewForReplica(postId);
-
-
         String videoUrl = post.getVideoUrl();
         if (videoUrl == null || videoUrl.isBlank()) {
             throw new RuntimeException("Video URL is empty");
@@ -232,24 +229,36 @@ public class PostController {
                 .body(videoBytes);
     }
 
-    /**
-     * Endpoint za čitanje CRDT brojača pregleda.
-     * Vraća ukupan broj pregleda (zbir svih replika) i detalje po replikama.
-     *
-     * TODO: Ovaj endpoint će biti korišćen za demonstraciju konzistentnosti
-     * Pokazuje da li replike imaju iste vrednosti nakon sinhronizacije.
-     */
+    @PostMapping("/{postId}/view")
+    public ResponseEntity<Void> incrementView(@PathVariable Long postId) {
+        videoViewCrdtService.incrementViewForReplica(postId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{postId}/crdt-views")
     public ResponseEntity<?> getCrdtViews(@PathVariable Long postId) {
+        videoViewCrdtService.broadcastToOtherReplicas(postId);
+
         Long totalViews = videoViewCrdtService.getTotalViewCount(postId);
         var counters = videoViewCrdtService.getAllCountersForVideo(postId);
         String currentReplicaId = videoViewCrdtService.getReplicaId();
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+
+        var formattedCounters = counters.stream().map(c -> Map.of(
+                "replicaId", c.getId().getReplicaId(),
+                "viewCount", c.getViewCount(),
+                "lastUpdated", Instant.ofEpochMilli(c.getLastUpdated())
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime()
+                        .format(formatter)
+        )).collect(Collectors.toList());
+
         return ResponseEntity.ok(Map.of(
-            "videoId", postId,
-            "totalViews", totalViews,
-            "currentReplica", currentReplicaId,
-            "countersPerReplica", counters
+                "videoId", postId,
+                "totalViews", totalViews,
+                "currentReplica", currentReplicaId,
+                "countersPerReplica", formattedCounters
         ));
     }
 

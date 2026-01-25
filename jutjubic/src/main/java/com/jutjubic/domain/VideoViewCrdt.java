@@ -25,16 +25,9 @@ public class VideoViewCrdt {
     @EmbeddedId
     private VideoViewCrdtId id;
 
-    /**
-     * Broj pregleda koje je ova replika registrovala za dati video.
-     * Ovaj brojač samo raste (grow-only).
-     */
     @Column(name = "view_count", nullable = false)
     private Long viewCount = 0L;
 
-    /**
-     * Timestamp poslednje izmene (za potrebe sinhronizacije i debugging).
-     */
     @Column(name = "last_updated")
     private Long lastUpdated;
 
@@ -47,10 +40,6 @@ public class VideoViewCrdt {
         this.lastUpdated = System.currentTimeMillis();
     }
 
-    /**
-     * Composite primary key za VideoViewCrdt.
-     * Kombinacija video ID-a i replica ID-a čini jedinstveni ključ.
-     */
     @Embeddable
     @Getter
     @Setter
@@ -59,10 +48,6 @@ public class VideoViewCrdt {
         @Column(name = "video_id", nullable = false)
         private Long videoId;
 
-        /**
-         * ID replike (npr. "replica_1", "replica_2", ...).
-         * Dinamički se postavlja kroz application properties.
-         */
         @Column(name = "replica_id", nullable = false, length = 50)
         private String replicaId;
 
