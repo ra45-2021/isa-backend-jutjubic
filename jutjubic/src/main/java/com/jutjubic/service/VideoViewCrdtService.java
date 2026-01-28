@@ -119,6 +119,25 @@ public class VideoViewCrdtService {
         }
     }
 
+    @Transactional
+    public void hardSyncAllReplicas(Long videoId) {
+        if (otherReplicaUrls == null) return;
+
+        for (String url : otherReplicaUrls) {
+            if (url == null || url.isBlank()) continue;
+
+            try {
+                restTemplate.postForEntity(url + "/api/crdt/broadcast/" + videoId, null, Void.class);
+                System.out.println("[CRDT HARD] Triggered broadcast on " + url + " for video " + videoId);
+            } catch (Exception e) {
+                System.err.println("[CRDT HARD] Failed to trigger broadcast on " + url + ": " + e.getMessage());
+            }
+        }
+
+        broadcastToOtherReplicas(videoId);
+    }
+
+
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 120000) // 2 minuta
     public void periodicSync() {
         System.out.println("[CRDT] Starting periodic batch sync for replica: " + replicaId);

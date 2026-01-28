@@ -262,6 +262,25 @@ public class PostController {
         ));
     }
 
+    @GetMapping("/{postId}/view-statistics")
+    public ResponseEntity<?> viewStatistics(@PathVariable Long postId) {
+
+        videoViewCrdtService.hardSyncAllReplicas(postId);
+
+        Long totalViews = videoViewCrdtService.getTotalViewCount(postId);
+        var counters = videoViewCrdtService.getAllCountersForVideo(postId);
+
+        return ResponseEntity.ok(Map.of(
+                "videoId", postId,
+                "totalViews", totalViews,
+                "countersPerReplica", counters.stream().map(c -> Map.of(
+                        "replicaId", c.getId().getReplicaId(),
+                        "viewCount", c.getViewCount()
+                )).toList()
+        ));
+    }
+
+
     @GetMapping
     public List<PostViewDto> getAllPosts(Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;

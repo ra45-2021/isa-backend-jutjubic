@@ -15,6 +15,12 @@ public class CrdtSyncController {
         this.crdtService = crdtService;
     }
 
+    @PostMapping("/broadcast/{videoId}")
+    public ResponseEntity<Void> broadcastMyCounter(@PathVariable Long videoId) {
+        crdtService.broadcastToOtherReplicas(videoId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/sync")
     public ResponseEntity<Void> receiveSync(@RequestBody CrdtSyncMessageDto message) {
         crdtService.mergeFromOtherReplica(
