@@ -357,6 +357,14 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "6. View after sync",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
         }
       ]
     },
@@ -406,6 +414,50 @@
               ]
             },
             "description": "Pozovi ovaj endpoint 10 puta koristeći Collection Runner"
+          },
+          "response": []
+        },
+        {
+          "name": "Replica 1 - Watch Video 2",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/posts/2/view",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "posts",
+                "2",
+                "view"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Replika 2 - Watch Video 2",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/posts/2/view",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "api",
+                "posts",
+                "2",
+                "view"
+              ]
+            }
           },
           "response": []
         }

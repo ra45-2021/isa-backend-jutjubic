@@ -239,7 +239,7 @@ public class PostController {
 
     @GetMapping("/{postId}/crdt-views")
     public ResponseEntity<?> getCrdtViews(@PathVariable Long postId) {
-        videoViewCrdtService.broadcastToOtherReplicas(postId);
+        //videoViewCrdtService.broadcastToOtherReplicas(postId);
 
         Long totalViews = videoViewCrdtService.getTotalViewCount(postId);
         var counters = videoViewCrdtService.getAllCountersForVideo(postId);
