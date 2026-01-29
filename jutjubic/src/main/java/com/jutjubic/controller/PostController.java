@@ -205,6 +205,8 @@ public class PostController {
             throw new RuntimeException("Video URL is empty");
         }
 
+        postRepository.incrementViewCount(postId);
+
         String videoFileName = Paths.get(videoUrl).getFileName().toString();
 
         Path baseDir = Paths.get(uploadProperties.getDir());
