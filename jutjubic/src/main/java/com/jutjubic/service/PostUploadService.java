@@ -32,13 +32,6 @@ public class PostUploadService {
         this.storage = storage;
     }
 
-    /**
-     * Transakciono kreiranje posta:
-     * - upload u temp
-     * - DB insert
-     * - NAKON uspešnog commit-a: temp -> final
-     * - rollback DB + fajlova ako bilo šta pukne
-     */
     @Transactional
     public Post createPost(
             String authorEmail,
@@ -51,7 +44,6 @@ public class PostUploadService {
             MultipartFile video
     ) throws IOException {
 
-        // 0) validacije (minimalne)
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Title is required");
         }
@@ -62,7 +54,6 @@ public class PostUploadService {
             throw new IllegalArgumentException("Video must be mp4");
         }
 
-        // 1) upload u TEMP (ovde se već meri timeout u storage servisu)
         LocalUploadStorageService.TempFiles temp;
         try {
             temp = storage.saveToTemp(video, thumbnail);
@@ -71,7 +62,6 @@ public class PostUploadService {
         }
 
         try {
-            // 2) DB insert (u istoj transakciji)
             Post saved = createDbRecord(
                     authorEmail,
                     title,
@@ -83,7 +73,6 @@ public class PostUploadService {
                     temp.thumbName()
             );
 
-            // 3) Pripremi finalne URL-ove (ali još uvek ne premesti fajlove!)
             String videoFileName = temp.videoName();
             String thumbFileName = temp.thumbName();
 
@@ -92,31 +81,24 @@ public class PostUploadService {
 
             Post finalSaved = postRepository.save(saved);
 
-            // 4) Registruj callback koji se izvršava NAKON uspešnog commit-a transakcije
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    // OVDE se fajlovi pomeraju SAMO ako je transakcija uspela!
                     System.out.println(" Transaction committed successfully - moving files to final location");
                     try {
                         var finals = storage.moveToFinal(temp);
                         System.out.println(" Files moved successfully: " + finals.videoPath());
 
-                        // Cleanup temp fajlova
                         storage.deleteIfExists(temp.tempVideo());
                         storage.deleteIfExists(temp.tempThumb());
                     } catch (IOException e) {
                         System.err.println(" ERROR: Failed to move files after commit: " + e.getMessage());
-                        // Ovde je transakcija već committed, ali fajlovi nisu premešteni
-                        // Idealno bi bilo logovati ovu grešku u monitoring sistem
-                        // U produkciji bi trebao cleanup job koji briše orphaned temp fajlove
                     }
                 }
 
                 @Override
                 public void afterCompletion(int status) {
                     if (status == STATUS_ROLLED_BACK) {
-                        // Transakcija je rollback-ovana - obriši temp fajlove
                         System.out.println(" Transaction rolled back - cleaning up temp files");
                         storage.deleteIfExists(temp.tempVideo());
                         storage.deleteIfExists(temp.tempThumb());
@@ -127,17 +109,12 @@ public class PostUploadService {
             return finalSaved;
 
         } catch (Exception e) {
-            // rollback temp fajlova (finalni još ne postoje jer se nisu pomerili)
             storage.deleteIfExists(temp.tempVideo());
             storage.deleteIfExists(temp.tempThumb());
             throw e;
         }
     }
 
-    /**
-     * Kreira Post u bazi.
-     * NEMA @Transactional – oslanja se na spoljašnju transakciju.
-     */
     private Post createDbRecord(
             String authorEmail,
             String title,
@@ -161,7 +138,6 @@ public class PostUploadService {
         post.setLocationLon(locationLon);
         post.setCreatedAt(Instant.now());
 
-        // privremeni URL-ovi (biće zamenjeni posle moveToFinal)
         post.setVideoUrl(tempVideoName);
         post.setThumbnailUrl(tempThumbName);
 

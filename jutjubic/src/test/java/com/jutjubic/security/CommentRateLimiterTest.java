@@ -81,7 +81,6 @@ class CommentRateLimiterTest {
 
         start.countDown();
 
-        // "no degradation": must finish within time
         assertTrue(done.await(2, TimeUnit.SECONDS),
                 "Too slow / possible degradation: did not finish within 2s");
 

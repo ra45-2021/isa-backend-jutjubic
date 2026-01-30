@@ -8,6 +8,7 @@ import com.jutjubic.service.CommentService;
 import com.jutjubic.service.PostService;
 import com.jutjubic.service.PostUploadService;
 import com.jutjubic.service.ThumbnailService;
+import com.jutjubic.service.VideoViewCrdtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.Part;
@@ -24,6 +25,10 @@ import com.jutjubic.domain.*;
 import com.jutjubic.repository.*;
 import java.util.Map;
 import java.security.Principal;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
 
 
 import java.io.File;
@@ -48,6 +53,7 @@ public class PostController {
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostService postService;
+    private final VideoViewCrdtService videoViewCrdtService;
 
     public PostController(
             PostRepository postRepository,
@@ -56,7 +62,9 @@ public class PostController {
             PostUploadService postUploadService,
             UploadProperties uploadProperties,
             UserRepository userRepository,
-            PostLikeRepository postLikeRepository, PostService postService) {
+            PostLikeRepository postLikeRepository,
+            PostService postService,
+            VideoViewCrdtService videoViewCrdtService) {
         this.postRepository = postRepository;
         this.commentService = commentService;
         this.thumbnailService = thumbnailService;
@@ -65,7 +73,9 @@ public class PostController {
         this.userRepository = userRepository;
         this.postLikeRepository = postLikeRepository;
         this.postService = postService;
+        this.videoViewCrdtService = videoViewCrdtService;
     }
+
 
     @GetMapping("/{postId}/thumbnail")
     public ResponseEntity<byte[]> getThumbnail(@PathVariable Long postId) throws Exception {
@@ -190,14 +200,12 @@ public class PostController {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // Inkrementiraj brojač pregleda
-        postService.incrementViewCount(postId);
-
-
         String videoUrl = post.getVideoUrl();
         if (videoUrl == null || videoUrl.isBlank()) {
             throw new RuntimeException("Video URL is empty");
         }
+
+        postRepository.incrementViewCount(postId);
 
         String videoFileName = Paths.get(videoUrl).getFileName().toString();
 
@@ -222,6 +230,58 @@ public class PostController {
                 .contentType(MediaType.parseMediaType("video/mp4"))
                 .body(videoBytes);
     }
+
+    @PostMapping("/{postId}/view")
+    public ResponseEntity<Void> incrementView(@PathVariable Long postId) {
+        videoViewCrdtService.incrementViewForReplica(postId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{postId}/crdt-views")
+    public ResponseEntity<?> getCrdtViews(@PathVariable Long postId) {
+        //videoViewCrdtService.broadcastToOtherReplicas(postId);
+
+        Long totalViews = videoViewCrdtService.getTotalViewCount(postId);
+        var counters = videoViewCrdtService.getAllCountersForVideo(postId);
+        String currentReplicaId = videoViewCrdtService.getReplicaId();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+
+        var formattedCounters = counters.stream().map(c -> Map.of(
+                "replicaId", c.getId().getReplicaId(),
+                "viewCount", c.getViewCount(),
+                "lastUpdated", Instant.ofEpochMilli(c.getLastUpdated())
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime()
+                        .format(formatter)
+        )).collect(Collectors.toList());
+
+        return ResponseEntity.ok(Map.of(
+                "videoId", postId,
+                "totalViews", totalViews,
+                "currentReplica", currentReplicaId,
+                "countersPerReplica", formattedCounters
+        ));
+    }
+
+    @GetMapping("/{postId}/view-statistics")
+    public ResponseEntity<?> viewStatistics(@PathVariable Long postId) {
+
+        videoViewCrdtService.hardSyncAllReplicas(postId);
+
+        Long totalViews = videoViewCrdtService.getTotalViewCount(postId);
+        var counters = videoViewCrdtService.getAllCountersForVideo(postId);
+
+        return ResponseEntity.ok(Map.of(
+                "videoId", postId,
+                "totalViews", totalViews,
+                "countersPerReplica", counters.stream().map(c -> Map.of(
+                        "replicaId", c.getId().getReplicaId(),
+                        "viewCount", c.getViewCount()
+                )).toList()
+        ));
+    }
+
 
     @GetMapping
     public List<PostViewDto> getAllPosts(Authentication auth) {
