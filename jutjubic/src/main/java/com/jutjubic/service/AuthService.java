@@ -63,7 +63,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Activation token not valid!"));
 
         user.setActive(true);
-        user.setActivationToken(null); // Brišemo token jer je upotrebljen
+        user.setActivationToken(null);
         userRepository.save(user);
     }
 
@@ -84,12 +84,10 @@ public class AuthService {
                 throw new RuntimeException("Invalid username or password!");
             }
 
-            // Ako je login uspešan, resetuj brojač za tu IP adresu
             attemptsCache.remove(ip);
             return jwtUtil.generateToken(user.getEmailAdress());
 
         } catch (RuntimeException e) {
-            // Ako je login neuspešan, povećaj brojač
             registerFailedAttempt(ip);
             throw e;
         }
@@ -107,7 +105,6 @@ public class AuthService {
         int attempts = attemptsCache.get(ip);
         LocalDateTime lastTime = lastAttemptTime.get(ip);
 
-        // Ako je prošlo više od 1 minuta, resetuj blokadu
         if (lastTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
             attemptsCache.remove(ip);
             return false;

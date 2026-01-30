@@ -46,3 +46,10 @@ VALUES
     (1, 3), -- Jana lajkuje Anin VLOG
     (2, 1), -- Ana lajkuje Markov SpringBoot tutorial
     (5, 3); -- Jana lajkuje Markov video o zvuku
+
+
+-- CRDT VIDEO VIEWS
+-- NAPOMENA: CRDT podatke ne popunjavamo ovde jer se ime tabele dinamički menja
+-- (video_view_crdt_replica1, video_view_crdt_replica2, itd.)
+-- CRDT zapisi će biti automatski kreirani kada korisnik prvi put pogleda video
+-- kroz VideoViewCrdtService.incrementViewForReplica() metodu
