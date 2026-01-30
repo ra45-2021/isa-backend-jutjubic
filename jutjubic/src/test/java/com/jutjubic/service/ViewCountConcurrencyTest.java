@@ -16,12 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test koji demonstrira konzistentnost brojača pregleda pri istovremenom pristupu istom videu.
- *
- * Simulira scenario gde više korisnika istovremeno pristupa istom videu i validira
- * da se broj pregleda pravilno inkrementira bez gubitka podataka.
- */
 @SpringBootTest
 @ActiveProfiles("test")
 class ViewCountConcurrencyTest {
@@ -40,11 +34,9 @@ class ViewCountConcurrencyTest {
     @BeforeEach
     @Transactional
     void setUp() {
-        // Očisti bazu pre svakog testa
         postRepository.deleteAll();
         userRepository.deleteAll();
 
-        // Kreiraj test korisnika
         User testUser = new User();
         testUser.setUsername("testuser");
         testUser.setEmailAdress("test@example.com");
@@ -53,7 +45,6 @@ class ViewCountConcurrencyTest {
         testUser.setSurname("User");
         testUser = userRepository.save(testUser);
 
-        // Kreiraj test video post
         Post testPost = new Post();
         testPost.setAuthor(testUser);
         testPost.setTitle("Test Video");
@@ -67,7 +58,6 @@ class ViewCountConcurrencyTest {
 
     @Test
     void testConcurrentViewIncrement_shouldBeConsistent() throws Exception {
-        // Broj istovremenih "gledaoca"
         int numberOfViewers = 50;
 
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfViewers);
@@ -79,14 +69,11 @@ class ViewCountConcurrencyTest {
 
         long startTime = System.currentTimeMillis();
 
-        // Simuliraj istovremene pozive od više korisnika
         for (int i = 0; i < numberOfViewers; i++) {
             executorService.submit(() -> {
                 try {
-                    // Čekaj da svi threadovi budu spremni
                     startLatch.await();
 
-                    // Pozovi metodu za inkrementaciju
                     postService.incrementViewCount(testPostId);
                     successfulIncrements.incrementAndGet();
 
@@ -99,14 +86,11 @@ class ViewCountConcurrencyTest {
             });
         }
 
-        // Pokreni sve threadove istovremeno
         startLatch.countDown();
 
-        // Čekaj da se svi završe (max 10 sekundi)
         boolean finished = endLatch.await(10, TimeUnit.SECONDS);
         assertTrue(finished, "Test nije završen u predviđenom vremenu");
 
-        // Daj malo vremena async operacijama da se završe
         Thread.sleep(2000);
 
         long duration = System.currentTimeMillis() - startTime;
@@ -114,7 +98,6 @@ class ViewCountConcurrencyTest {
         executorService.shutdown();
         executorService.awaitTermination(5, TimeUnit.SECONDS);
 
-        // Učitaj post iz baze i proveri viewCount
         Post updatedPost = postRepository.findById(testPostId)
                 .orElseThrow(() -> new AssertionError("Post not found"));
 
@@ -126,7 +109,6 @@ class ViewCountConcurrencyTest {
         System.out.println("Test duration: " + duration + "ms");
         System.out.println("==================");
 
-        // Validacije
         assertEquals(0, failedIncrements.get(),
                 "Sve inkrementacije treba da uspeju");
 
@@ -143,12 +125,10 @@ class ViewCountConcurrencyTest {
 
         long startTime = System.currentTimeMillis();
 
-        // Sekvencijalni pozivi (baseline za poređenje)
         for (int i = 0; i < numberOfViews; i++) {
             postService.incrementViewCount(testPostId);
         }
 
-        // Čekaj async operacije
         Thread.sleep(1000);
 
         long duration = System.currentTimeMillis() - startTime;
@@ -168,8 +148,6 @@ class ViewCountConcurrencyTest {
 
     @Test
     void testHighLoadConcurrency_stressTest() throws Exception {
-        // Stress test sa mnogo više konkurentnih zahteva
-        // Ograničeno na 100 jer AsyncConfig ima: 5 max threads + 100 queue capacity = 105 total
         int numberOfViewers = 100;
 
         ExecutorService executorService = Executors.newFixedThreadPool(100);
@@ -198,7 +176,6 @@ class ViewCountConcurrencyTest {
         boolean finished = endLatch.await(20, TimeUnit.SECONDS);
         assertTrue(finished, "Stress test timeout");
 
-        // Daj dovoljno vremena za sve async operacije
         Thread.sleep(5000);
 
         long duration = System.currentTimeMillis() - startTime;

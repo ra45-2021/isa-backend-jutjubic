@@ -12,10 +12,10 @@ import java.util.Date;
 public class JwtUtil {
 
     @Value("${jwt.secret}")
-    private String secret; // Uzima "somesecret" iz application.properties
+    private String secret;
 
     @Value("${jwt.expiration}")
-    private long expiration; // Uzima 1800000 iz application.properties
+    private long expiration;
 
     public String generateToken(String username) {
         return Jwts.builder()
@@ -26,7 +26,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Iako se zove extractUsername, vratiće email jer je on "subject" u tokenu
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }

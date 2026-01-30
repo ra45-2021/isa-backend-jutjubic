@@ -10,14 +10,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Konfiguracija koja dinamički menja ime tabele za VideoViewCrdt entity
- * na osnovu replica.table.suffix property-ja.
- *
- * Primer:
- * - Ako je replica.table.suffix=replica1, tabela će biti: video_view_crdt_replica1
- * - Ako je replica.table.suffix=replica2, tabela će biti: video_view_crdt_replica2
- */
 @Component
 public class ReplicaTableNameConfig implements ApplicationListener<ApplicationReadyEvent> {
 
@@ -33,7 +25,6 @@ public class ReplicaTableNameConfig implements ApplicationListener<ApplicationRe
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        // Logovanje za potvrdu
         System.out.println("=================================");
         System.out.println("Replica Table Config:");
         System.out.println("  Table suffix: " + tableSuffix);

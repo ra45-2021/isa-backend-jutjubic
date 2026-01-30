@@ -6,16 +6,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 
-/**
- * Entity klasa za CRDT (Conflict-free Replicated Data Type) brojač pregleda videa.
- * Svaka replika čuva informaciju o broju pregleda u svojoj tabeli.
- *
- * Struktura podržava G-counter (Grow-only counter) pattern gde svaka replika
- * prati svoj lokalni brojač i komunicira sa drugim replikama za sinhronizaciju.
- *
- * NAPOMENA: Ime tabele se dinamički postavlja kroz ReplicaTableNameConfig na osnovu
- * replica.table.suffix property-ja (npr. video_view_crdt_replica1, video_view_crdt_replica2).
- */
 @Entity
 @Table(name = "video_view_crdt")
 @Getter

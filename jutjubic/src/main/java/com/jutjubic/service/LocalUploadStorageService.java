@@ -66,7 +66,6 @@ public class LocalUploadStorageService {
             Files.move(temp.tempThumb(), finalThumb, StandardCopyOption.REPLACE_EXISTING);
             return new FinalFiles(finalVideo, finalThumb);
         } catch (Exception e) {
-            // rollback final ako je nešto premešteno
             safeDelete(finalVideo);
             safeDelete(finalThumb);
             throw e;
@@ -107,7 +106,6 @@ public class LocalUploadStorageService {
     private void copyWithTimeout(InputStream input, Path target, long timeoutSeconds) throws IOException {
         Instant start = Instant.now();
 
-        //  Simuliraj upload koji traje 21 sekundi
         if (testSlowMode) {
             try {
                 System.out.println("TEST SLOW MODE: Waiting 21 seconds to simulate slow upload...");
