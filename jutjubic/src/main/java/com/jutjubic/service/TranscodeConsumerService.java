@@ -9,6 +9,9 @@ import com.jutjubic.repository.TranscodingJobRepository;
 import com.rabbitmq.client.Channel;
 import jakarta.transaction.Transactional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
@@ -16,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 
+//za pokretanje % docker run -it --rm -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 @Service
 public class TranscodeConsumerService {
 
@@ -37,8 +41,11 @@ public class TranscodeConsumerService {
     }
 
     @RabbitListener(queues = "${app.transcoding.queue}", concurrency = "2")
-    public void handle(TranscodeJobMessageDto msg, Channel channel, org.springframework.amqp.core.Message amqpMsg) throws Exception {
-        long tag = amqpMsg.getMessageProperties().getDeliveryTag();
+    public void handle(
+            @Payload TranscodeJobMessageDto msg,
+            Channel channel,
+            @Header(AmqpHeaders.DELIVERY_TAG) long tag
+    ) throws Exception {
 
         try {
             if (!tryInsertJob(msg)) {
@@ -48,7 +55,6 @@ public class TranscodeConsumerService {
             }
 
             System.out.println("CONSUMER START JOB: jobId=" + msg.jobId() + ", postId=" + msg.postId());
-
             setStatus(msg.jobId(), "PROCESSING", null);
 
             Path input = Paths.get(msg.inputAbsolutePath());
@@ -73,12 +79,14 @@ public class TranscodeConsumerService {
             channel.basicAck(tag, false);
 
         } catch (Exception e) {
-            try { setStatus(msg.jobId(), "FAILED", e.getMessage()); } catch (Exception ignored) {}
+            try {
+                setStatus(msg.jobId(), "FAILED", e.getMessage());
+            } catch (Exception ignored) {}
+
             System.err.println("TRANSCODE FAILED jobId=" + msg.jobId() + " err=" + e.getMessage());
-            channel.basicNack(tag, false, false);
+            channel.basicNack(tag, false, false); // dead-letter/ drop
         }
     }
-
 
     @Transactional
     protected boolean tryInsertJob(TranscodeJobMessageDto msg) {
@@ -88,6 +96,7 @@ public class TranscodeConsumerService {
         job.setJobId(msg.jobId());
         job.setPostId(msg.postId());
         job.setStatus("RECEIVED");
+        job.setCreatedAt(Instant.now());
         jobRepo.save(job);
         return true;
     }
