@@ -85,22 +85,27 @@ public class TranscodeConsumerService {
             } catch (Exception ignored) {}
 
             System.err.println("TRANSCODE FAILED jobId=" + msg.jobId() + " err=" + e.getMessage());
-            channel.basicNack(tag, false, false); // dead-letter/ drop
+            channel.basicNack(tag, false, false);
         }
     }
 
     @Transactional
     protected boolean tryInsertJob(TranscodeJobMessageDto msg) {
-        if (jobRepo.existsByJobId(msg.jobId())) return false;
+        try {
+            TranscodingJob job = new TranscodingJob();
+            job.setJobId(msg.jobId());
+            job.setPostId(msg.postId());
+            job.setStatus("RECEIVED");
+            job.setCreatedAt(Instant.now());
 
-        TranscodingJob job = new TranscodingJob();
-        job.setJobId(msg.jobId());
-        job.setPostId(msg.postId());
-        job.setStatus("RECEIVED");
-        job.setCreatedAt(Instant.now());
-        jobRepo.save(job);
-        return true;
+            jobRepo.saveAndFlush(job);
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
     }
+
 
     @Transactional
     protected void setStatus(String jobId, String status, String error) {
