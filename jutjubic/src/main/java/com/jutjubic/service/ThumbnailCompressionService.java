@@ -19,7 +19,7 @@ public class ThumbnailCompressionService {
         this.props = props;
     }
 
-    @Scheduled(cron = "*/15 * * * * *", zone = "Europe/Belgrade")
+    @Scheduled(cron = "0 0 0 * * *", zone = "Europe/Belgrade")
     public void dailyCompressionJob() {
         System.out.println("[THUMB-COMPRESS] Daily job started...");
         var res = compressThumbnailsOlderThanDays(30);
