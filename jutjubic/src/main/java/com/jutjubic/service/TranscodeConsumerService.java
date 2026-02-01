@@ -19,7 +19,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 
-//za pokretanje % docker run -it --rm -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+//za pokretanje komanda u terminalu:
+//docker run -it --rm -p 5672:5672 -p 15672:15672 rabbitmq:3-management
 @Service
 public class TranscodeConsumerService {
 
