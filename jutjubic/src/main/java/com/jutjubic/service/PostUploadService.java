@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+import com.jutjubic.dto.TranscodeJobMessageDto;
+import java.util.UUID;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -21,15 +23,18 @@ public class PostUploadService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LocalUploadStorageService storage;
+    private final TranscodePublisher transcodePublisher;
 
     public PostUploadService(
             PostRepository postRepository,
             UserRepository userRepository,
-            LocalUploadStorageService storage
+            LocalUploadStorageService storage,
+            TranscodePublisher transcodePublisher
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.storage = storage;
+        this.transcodePublisher = transcodePublisher;
     }
 
     @Transactional
@@ -84,15 +89,30 @@ public class PostUploadService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    System.out.println(" Transaction committed successfully - moving files to final location");
+                    System.out.println("Transaction committed successfully - moving files to final location");
                     try {
                         var finals = storage.moveToFinal(temp);
-                        System.out.println(" Files moved successfully: " + finals.videoPath());
+                        System.out.println("Files moved successfully: " + finals.videoPath());
+
+                        String jobId = UUID.randomUUID().toString();
+                        String inputAbsPath = finals.videoPath().toAbsolutePath().toString();
+
+                        transcodePublisher.publish(new TranscodeJobMessageDto(
+                                jobId,
+                                finalSaved.getId(),
+                                inputAbsPath,
+                                "mp4_720p"
+                        ));
+
+                        System.out.println("PUBLISHED TRANSCODE JOB: postId=" + finalSaved.getId() + " input=" + inputAbsPath);
 
                         storage.deleteIfExists(temp.tempVideo());
                         storage.deleteIfExists(temp.tempThumb());
+
                     } catch (IOException e) {
-                        System.err.println(" ERROR: Failed to move files after commit: " + e.getMessage());
+                        System.err.println("ERROR: Failed to move files after commit: " + e.getMessage());
+                    } catch (Exception e) {
+                        System.err.println("ERROR: Failed to publish transcode job: " + e.getMessage());
                     }
                 }
 

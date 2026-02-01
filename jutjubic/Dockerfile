@@ -28,6 +28,9 @@ RUN mvn package -DskipTests -B
 # =============================================
 FROM eclipse-temurin:21-jre
 
+# Instaliramo ffmpeg za video transcoding
+RUN apt-get update && apt-get install -y ffmpeg curl && rm -rf /var/lib/apt/lists/*
+
 # Kreiramo non-root korisnika za sigurnost
 RUN groupadd -r jutjubic && useradd -r -g jutjubic jutjubic
 
@@ -37,8 +40,8 @@ WORKDIR /app
 # Kopiramo JAR iz build faze
 COPY --from=build /app/target/*.jar app.jar
 
-# Kreiramo direktorijum za upload fajlove
-RUN mkdir -p /app/uploads/thumbs /app/uploads/videos /app/uploads/tmp \
+# Kreiramo direktorijume za upload i transcoding fajlove
+RUN mkdir -p /app/uploads/thumbs /app/uploads/thumbs/compressed /app/uploads/videos /app/uploads/tmp /app/uploads/transcoded \
     && chown -R jutjubic:jutjubic /app
 
 # Prelazimo na non-root korisnika
