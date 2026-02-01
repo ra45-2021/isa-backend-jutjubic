@@ -138,7 +138,7 @@ public class VideoViewCrdtService {
     }
 
 
-    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 120000) // 2 minuta
+    //@org.springframework.scheduling.annotation.Scheduled(fixedRate = 120000) // 2 minuta
     public void periodicSync() {
         System.out.println("[CRDT] Starting periodic batch sync for replica: " + replicaId);
 
