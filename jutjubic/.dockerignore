@@ -1,0 +1,31 @@
+# Ignoriši ove fajlove/foldere prilikom Docker build-a
+# Ovo ubrzava build i smanjuje veličinu konteksta
+
+# Build output
+target/
+
+# IDE fajlovi
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+logs/
+
+# Upload fajlovi (koristimo volume za ovo)
+uploads/
+
+# OS fajlovi
+.DS_Store
+Thumbs.db
+
+# Docker fajlovi (ne trebaju nam unutar image-a)
+Dockerfile
+docker-compose*.yml
+.dockerignore
