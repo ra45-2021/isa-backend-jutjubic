@@ -24,17 +24,20 @@ public class PostUploadService {
     private final UserRepository userRepository;
     private final LocalUploadStorageService storage;
     private final TranscodePublisher transcodePublisher;
+    private final UploadEventProducer uploadEventProducer;
 
     public PostUploadService(
             PostRepository postRepository,
             UserRepository userRepository,
             LocalUploadStorageService storage,
-            TranscodePublisher transcodePublisher
+            TranscodePublisher transcodePublisher,
+            UploadEventProducer uploadEventProducer
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.storage = storage;
         this.transcodePublisher = transcodePublisher;
+        this.uploadEventProducer = uploadEventProducer;
     }
 
     @Transactional
@@ -105,6 +108,11 @@ public class PostUploadService {
                         ));
 
                         System.out.println("PUBLISHED TRANSCODE JOB: postId=" + finalSaved.getId() + " input=" + inputAbsPath);
+
+                        // Šalji UploadEvent u RabbitMQ (JSON i Protobuf format) za benchmark
+                        long fileSizeBytes = finals.videoPath().toFile().length();
+                        uploadEventProducer.sendUploadEvent(finalSaved, fileSizeBytes);
+                        System.out.println("PUBLISHED UPLOAD EVENT: postId=" + finalSaved.getId() + " fileSize=" + fileSizeBytes);
 
                         storage.deleteIfExists(temp.tempVideo());
                         storage.deleteIfExists(temp.tempThumb());
