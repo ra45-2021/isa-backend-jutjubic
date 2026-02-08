@@ -6,15 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * REST Controller za pokretanje benchmark testova.
- *
- * Endpoints:
- * - GET /api/benchmark/local?count=100  - Lokalni benchmark (bez RabbitMQ)
- * - GET /api/benchmark/rabbitmq?count=100 - Benchmark kroz RabbitMQ
- * - GET /api/benchmark/results - Trenutni rezultati
- * - POST /api/benchmark/reset - Resetuje statistiku
- */
+// REST Controller za pokretanje benchmark testova
 @Slf4j
 @RestController
 @RequestMapping("/api/benchmark")
@@ -26,17 +18,6 @@ public class BenchmarkController {
         this.benchmarkService = benchmarkService;
     }
 
-    /**
-     * Pokreće lokalni benchmark (bez slanja u RabbitMQ).
-     *
-     * Ovo testira čiste performanse serijalizacije/deserijalizacije
-     * bez uticaja mrežne latencije.
-     *
-     * Primer: GET /api/benchmark/local?count=100
-     *
-     * @param count Broj poruka za testiranje (default: 100)
-     * @return BenchmarkResult sa rezultatima
-     */
     @GetMapping("/local")
     public ResponseEntity<BenchmarkResult> runLocalBenchmark(
             @RequestParam(defaultValue = "100") int count
@@ -51,17 +32,6 @@ public class BenchmarkController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Pokreće benchmark kroz RabbitMQ.
-     *
-     * Šalje poruke u oba formata kroz RabbitMQ queue-ove.
-     * Consumer prima poruke i beleži vreme deserijalizacije.
-     *
-     * Primer: GET /api/benchmark/rabbitmq?count=100
-     *
-     * @param count Broj poruka za testiranje (default: 100)
-     * @return BenchmarkResult sa rezultatima
-     */
     @GetMapping("/rabbitmq")
     public ResponseEntity<BenchmarkResult> runRabbitMqBenchmark(
             @RequestParam(defaultValue = "100") int count
@@ -76,33 +46,18 @@ public class BenchmarkController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Vraća trenutne rezultate benchmark-a.
-     *
-     * Korisno za praćenje rezultata dok se poruke primaju.
-     *
-     * Primer: GET /api/benchmark/results
-     */
     @GetMapping("/results")
     public ResponseEntity<BenchmarkResult> getCurrentResults() {
         BenchmarkResult result = benchmarkService.getCurrentResults();
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Resetuje sve statistike.
-     *
-     * Primer: POST /api/benchmark/reset
-     */
     @PostMapping("/reset")
     public ResponseEntity<String> reset() {
         benchmarkService.reset();
         return ResponseEntity.ok("Benchmark statistika resetovana");
     }
 
-    /**
-     * Health check endpoint.
-     */
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("MQ Benchmark aplikacija radi!");
