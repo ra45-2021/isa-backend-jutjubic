@@ -29,6 +29,15 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRange;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaTypeFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.support.ResourceRegion;
+
 
 
 import java.io.File;
@@ -196,40 +205,65 @@ public class PostController {
     }
 
     @GetMapping("/{postId}/video")
-    public ResponseEntity<byte[]> getVideo(@PathVariable Long postId) throws Exception {
+    public ResponseEntity<ResourceRegion> getVideo(
+            @PathVariable Long postId,
+            @RequestHeader HttpHeaders headers
+    ) throws Exception {
+
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
         String videoUrl = post.getVideoUrl();
         if (videoUrl == null || videoUrl.isBlank()) {
-            throw new RuntimeException("Video URL is empty");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video URL is empty");
         }
 
-        postRepository.incrementViewCount(postId);
+        //postRepository.incrementViewCount(postId);
 
-        String videoFileName = Paths.get(videoUrl).getFileName().toString();
+        String fileName = Paths.get(videoUrl).getFileName().toString();
 
-        Path baseDir = Paths.get(uploadProperties.getDir());
-        if (!baseDir.isAbsolute()) {
-            baseDir = Paths.get(System.getProperty("user.dir")).resolve(baseDir);
-        }
-
+        Path baseDir = Paths.get(uploadProperties.getDir()).normalize();
         Path filePath = baseDir
-                .resolve(uploadProperties.getVideosDir())
-                .resolve(videoFileName)
-                .toAbsolutePath()
+                .resolve(uploadProperties.getVideosTranscodedDir())
+                .resolve(fileName)
                 .normalize();
 
+        if (!filePath.startsWith(baseDir)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid video path");
+        }
         if (!Files.exists(filePath)) {
-            throw new RuntimeException("Video file not found: " + filePath);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transcoded video not found: " + filePath);
         }
 
-        byte[] videoBytes = Files.readAllBytes(filePath);
+        Resource video = new UrlResource(filePath.toUri());
+        long contentLength = video.contentLength();
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("video/mp4"))
-                .body(videoBytes);
+        final long chunkSize = 1024 * 1024;
+
+        List<HttpRange> ranges = headers.getRange();
+        ResourceRegion region;
+
+        if (ranges == null || ranges.isEmpty()) {
+            long rangeLength = Math.min(chunkSize, contentLength);
+            region = new ResourceRegion(video, 0, rangeLength);
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .contentType(MediaTypeFactory.getMediaType(video).orElse(MediaType.APPLICATION_OCTET_STREAM))
+                    .body(region);
+        } else {
+            HttpRange range = ranges.get(0);
+            long start = range.getRangeStart(contentLength);
+            long end = range.getRangeEnd(contentLength);
+            long rangeLength = Math.min(chunkSize, end - start + 1);
+            region = new ResourceRegion(video, start, rangeLength);
+
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .contentType(MediaTypeFactory.getMediaType(video).orElse(MediaType.APPLICATION_OCTET_STREAM))
+                    .body(region);
+        }
     }
+
 
     @PostMapping("/{postId}/view")
     public ResponseEntity<Void> incrementView(@PathVariable Long postId) {
@@ -282,11 +316,16 @@ public class PostController {
         ));
     }
 
-
     @GetMapping
     public List<PostViewDto> getAllPosts(Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;
-        return postRepository.findAllPostViewsNewestFirst(currentUsername);
+        List<PostViewDto> list = postRepository.findAllPostViewsNewestFirst(currentUsername);
+
+        for (PostViewDto dto : list) {
+            Long total = videoViewCrdtService.getTotalViewCount(dto.getId());
+            dto.setViewCount(total != null ? total : 0L);
+        }
+        return list;
     }
 
 
@@ -321,10 +360,15 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostViewDto> getPost(@PathVariable Long postId, Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;
+
         return postRepository.findPostViewByPostId(postId, currentUsername)
-                .map(ResponseEntity::ok)
+                .map(dto -> {
+                    dto.setViewCount(videoViewCrdtService.getTotalViewCount(postId));
+                    return ResponseEntity.ok(dto);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<?> toggleLike(@PathVariable Long postId, Authentication auth) {

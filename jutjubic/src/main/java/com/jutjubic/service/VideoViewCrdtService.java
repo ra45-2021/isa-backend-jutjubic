@@ -128,9 +128,9 @@ public class VideoViewCrdtService {
 
             try {
                 restTemplate.postForEntity(url + "/api/crdt/broadcast/" + videoId, null, Void.class);
-                System.out.println("[CRDT HARD] Triggered broadcast on " + url + " for video " + videoId);
+                System.out.println("Triggered broadcast on " + url + " for video " + videoId);
             } catch (Exception e) {
-                System.err.println("[CRDT HARD] Failed to trigger broadcast on " + url + ": " + e.getMessage());
+                System.err.println("Failed to trigger broadcast on " + url + ": " + e.getMessage());
             }
         }
 
@@ -138,7 +138,7 @@ public class VideoViewCrdtService {
     }
 
 
-    //@org.springframework.scheduling.annotation.Scheduled(fixedRate = 120000) // 2 minuta
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 120000) // 2 minuta
     public void periodicSync() {
         System.out.println("[CRDT] Starting periodic batch sync for replica: " + replicaId);
 

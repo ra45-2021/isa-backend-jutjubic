@@ -15,11 +15,13 @@ public class ThumbnailCompressionService {
 
     private final UploadProperties props;
 
+    //touch -t 202602101830 file.jpg
+
     public ThumbnailCompressionService(UploadProperties props) {
         this.props = props;
     }
 
-    @Scheduled(cron = "*/15 * * * * *", zone = "Europe/Belgrade")
+    @Scheduled(cron = "0 0 0  * * *", zone = "Europe/Belgrade")
     public void dailyCompressionJob() {
         System.out.println("[THUMB-COMPRESS] Daily job started...");
         var res = compressThumbnailsOlderThanDays(30);
@@ -57,7 +59,6 @@ public class ThumbnailCompressionService {
 
                     String name = original.getFileName().toString().toLowerCase();
                     if (!(name.endsWith(".jpg") || name.endsWith(".jpeg"))) {
-                        // Thumbnailator outputQuality radi najbolje za JPEG.
                         skipped++;
                         continue;
                     }
@@ -73,14 +74,13 @@ public class ThumbnailCompressionService {
                     Path compressedFile = compressedDir.resolve(original.getFileName().toString());
                     if (Files.exists(compressedFile)) {
                         skipped++;
-                        continue; // već kompresovano
+                        continue;
                     }
 
                     try {
-                        // Kompresija: zadrži dimenzije (scale(1.0)), spusti kvalitet
                         Thumbnails.of(original.toFile())
                                 .scale(1.0)
-                                .outputQuality(0.75) // 0.0 - 1.0
+                                .outputQuality(0.30)
                                 .outputFormat("jpg")
                                 .toFile(compressedFile.toFile());
 

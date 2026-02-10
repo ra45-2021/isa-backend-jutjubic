@@ -44,8 +44,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(auth -> auth
-                        // Health check endpointi - moraju biti dostupni bez autentifikacije
-                        // Load balancer koristi ove endpointe da proveri da li je replika ziva
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/api/crdt/**").permitAll()
@@ -53,7 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/posts/*/view").permitAll()
                         .requestMatchers("/uploads/**", "/media/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Thumbnail i video endpointi - eksplicitno dozvoljeni
+
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/thumbnail").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/video").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
