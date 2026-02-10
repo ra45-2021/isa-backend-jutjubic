@@ -1,3 +1,18 @@
+# =============================================
+# DOCKER COMPOSE - Jutjubic Klaster
+# =============================================
+# Pokreće kompletnu infrastrukturu:
+# - PostgreSQL baza (zajednička za obe replike)
+# - RabbitMQ message broker
+# - 2 replike aplikacije (replica_1, replica_2)
+# - MQ Benchmark aplikacija (JSON vs Protobuf)
+# - NGINX load balancer
+# =============================================
+# Pokretanje:  docker-compose up -d
+# Zaustavljanje: docker-compose down
+# Logovi:      docker-compose logs -f
+# =============================================
+
 version: '3.8'
 
 services:
@@ -111,6 +126,47 @@ services:
       retries: 3
       start_period: 60s
 
+  # =========================================
+  # MQ BENCHMARK - JSON vs Protobuf
+  # =========================================
+  # Prima UploadEvent poruke od replika i
+  # meri performanse JSON vs Protobuf serijalizacije
+  # Pristup: http://localhost:8083/api/benchmark/...
+  # =========================================
+  mq-benchmark:
+    build:
+      context: ../mq-json-protobuf
+      dockerfile: Dockerfile
+    container_name: jutjubic-mq-benchmark
+    ports:
+      - "8083:8080"
+    environment:
+      # RabbitMQ konekcija
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      # JVM podešavanja
+      JAVA_OPTS: -Xmx256m -Xms128m
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - jutjubic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/benchmark/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # =========================================
+  # NGINX LOAD BALANCER
+  # =========================================
+  # Raspoređuje zahteve između replika
+  # Automatski izbacuje "bolesne" replike
+  # =========================================
   nginx:
     image: nginx:alpine
     container_name: jutjubic-nginx
