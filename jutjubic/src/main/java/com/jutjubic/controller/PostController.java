@@ -218,9 +218,8 @@ public class PostController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video URL is empty");
         }
 
-        postRepository.incrementViewCount(postId);
+        //postRepository.incrementViewCount(postId);
 
-        // Always transcoded (as you wanted)
         String fileName = Paths.get(videoUrl).getFileName().toString();
 
         Path baseDir = Paths.get(uploadProperties.getDir()).normalize();
@@ -239,7 +238,6 @@ public class PostController {
         Resource video = new UrlResource(filePath.toUri());
         long contentLength = video.contentLength();
 
-        // 1MB chunks are a good default
         final long chunkSize = 1024 * 1024;
 
         List<HttpRange> ranges = headers.getRange();
@@ -318,11 +316,16 @@ public class PostController {
         ));
     }
 
-
     @GetMapping
     public List<PostViewDto> getAllPosts(Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;
-        return postRepository.findAllPostViewsNewestFirst(currentUsername);
+        List<PostViewDto> list = postRepository.findAllPostViewsNewestFirst(currentUsername);
+
+        for (PostViewDto dto : list) {
+            Long total = videoViewCrdtService.getTotalViewCount(dto.getId());
+            dto.setViewCount(total != null ? total : 0L);
+        }
+        return list;
     }
 
 
@@ -357,10 +360,15 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostViewDto> getPost(@PathVariable Long postId, Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;
+
         return postRepository.findPostViewByPostId(postId, currentUsername)
-                .map(ResponseEntity::ok)
+                .map(dto -> {
+                    dto.setViewCount(videoViewCrdtService.getTotalViewCount(postId));
+                    return ResponseEntity.ok(dto);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<?> toggleLike(@PathVariable Long postId, Authentication auth) {

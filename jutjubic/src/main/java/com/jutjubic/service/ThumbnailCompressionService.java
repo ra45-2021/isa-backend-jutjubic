@@ -15,8 +15,7 @@ public class ThumbnailCompressionService {
 
     private final UploadProperties props;
 
-    //touch -t image-name.jpg
-    // docker compose down + docker compose up -d --build
+    //touch -t 202602101830 file.jpg
 
     public ThumbnailCompressionService(UploadProperties props) {
         this.props = props;

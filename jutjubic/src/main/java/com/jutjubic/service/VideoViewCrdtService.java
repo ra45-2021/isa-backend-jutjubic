@@ -128,9 +128,9 @@ public class VideoViewCrdtService {
 
             try {
                 restTemplate.postForEntity(url + "/api/crdt/broadcast/" + videoId, null, Void.class);
-                System.out.println("[CRDT HARD] Triggered broadcast on " + url + " for video " + videoId);
+                System.out.println("Triggered broadcast on " + url + " for video " + videoId);
             } catch (Exception e) {
-                System.err.println("[CRDT HARD] Failed to trigger broadcast on " + url + ": " + e.getMessage());
+                System.err.println("Failed to trigger broadcast on " + url + ": " + e.getMessage());
             }
         }
 

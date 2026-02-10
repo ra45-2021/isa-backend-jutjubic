@@ -112,5 +112,6 @@ public class PostViewDto {
     public Long getLikeCount() { return likeCount; }
     public Boolean getLikedByMe() { return likedByMe; }
     public Long getViewCount() { return view_count; }
+    public void setViewCount(Long viewCount) {this.view_count = viewCount;}
 
 }
