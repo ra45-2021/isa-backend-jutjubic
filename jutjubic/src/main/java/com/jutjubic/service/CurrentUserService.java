@@ -29,4 +29,12 @@ public class CurrentUserService {
         return users.findByEmailAdress(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
     }
+
+    public User optional() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return null;
+
+        String email = auth.getName();
+        return users.findByEmailAdress(email).orElse(null);
+    }
 }
