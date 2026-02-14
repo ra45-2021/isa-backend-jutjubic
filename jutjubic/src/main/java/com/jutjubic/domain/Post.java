@@ -3,6 +3,7 @@ package com.jutjubic.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.Duration;
 
 import java.time.Instant;
 
@@ -70,6 +71,16 @@ public class Post {
     @Getter
     @Column(name = "view_count", nullable = false)
     private Long viewCount = 0L;
+
+    @Setter
+    @Getter
+    @Column(name = "scheduled_at")
+    private Instant scheduledAt;
+
+    @Setter
+    @Getter
+    @Column(name = "duration_seconds")
+    private Double durationSeconds;
 
     public Post() {
     }

@@ -25,19 +25,22 @@ public class PostUploadService {
     private final LocalUploadStorageService storage;
     private final TranscodePublisher transcodePublisher;
     private final UploadEventProducer uploadEventProducer;
+    private final VideoMetadataService videoMetadataService;
 
     public PostUploadService(
             PostRepository postRepository,
             UserRepository userRepository,
             LocalUploadStorageService storage,
             TranscodePublisher transcodePublisher,
-            UploadEventProducer uploadEventProducer
+            UploadEventProducer uploadEventProducer,
+            VideoMetadataService videoMetadataService
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.storage = storage;
         this.transcodePublisher = transcodePublisher;
         this.uploadEventProducer = uploadEventProducer;
+        this.videoMetadataService = videoMetadataService;
     }
 
     @Transactional
@@ -48,6 +51,7 @@ public class PostUploadService {
             String tags,
             Double locationLat,
             Double locationLon,
+            Instant scheduledAt,
             MultipartFile thumbnail,
             MultipartFile video
     ) throws IOException {
@@ -61,6 +65,9 @@ public class PostUploadService {
         if (!video.getOriginalFilename().toLowerCase().endsWith(".mp4")) {
             throw new IllegalArgumentException("Video must be mp4");
         }
+        if (scheduledAt != null && scheduledAt.isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Scheduled time must be in the future");
+        }
 
         LocalUploadStorageService.TempFiles temp;
         try {
@@ -70,6 +77,13 @@ public class PostUploadService {
         }
 
         try {
+            Double durationSeconds = videoMetadataService.extractDuration(temp.tempVideo());
+            if (durationSeconds != null) {
+                System.out.println("Extracted video duration: " + durationSeconds + " seconds");
+            } else {
+                System.out.println("WARNING: Could not extract video duration");
+            }
+
             Post saved = createDbRecord(
                     authorEmail,
                     title,
@@ -77,6 +91,8 @@ public class PostUploadService {
                     tags,
                     locationLat,
                     locationLon,
+                    scheduledAt,
+                    durationSeconds,
                     temp.videoName(),
                     temp.thumbName()
             );
@@ -109,7 +125,6 @@ public class PostUploadService {
 
                         System.out.println("PUBLISHED TRANSCODE JOB: postId=" + finalSaved.getId() + " input=" + inputAbsPath);
 
-                        // Šalji UploadEvent u RabbitMQ (JSON i Protobuf format) za benchmark
                         long fileSizeBytes = finals.videoPath().toFile().length();
                         uploadEventProducer.sendUploadEvent(finalSaved, fileSizeBytes);
                         System.out.println("PUBLISHED UPLOAD EVENT: postId=" + finalSaved.getId() + " fileSize=" + fileSizeBytes);
@@ -150,6 +165,8 @@ public class PostUploadService {
             String tags,
             Double locationLat,
             Double locationLon,
+            Instant scheduledAt,
+            Double durationSeconds,
             String tempVideoName,
             String tempThumbName
     ) {
@@ -164,6 +181,8 @@ public class PostUploadService {
         post.setTags(tags);
         post.setLocationLat(locationLat);
         post.setLocationLon(locationLon);
+        post.setScheduledAt(scheduledAt);
+        post.setDurationSeconds(durationSeconds);
         post.setCreatedAt(Instant.now());
 
         post.setVideoUrl(tempVideoName);
