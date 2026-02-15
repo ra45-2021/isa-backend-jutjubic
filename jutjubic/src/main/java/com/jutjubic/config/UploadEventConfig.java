@@ -6,46 +6,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Konfiguracija za UploadEvent RabbitMQ queue-ove.
- *
- * Definiše exchange i queue-ove za slanje UploadEvent poruka
- * u JSON i Protobuf formatu.
- *
- * Arhitektura:
- *
- *   jutjubic app (ova aplikacija)
- *        │
- *        │ UploadEventProducer.send()
- *        ▼
- *   ┌─────────────────────────────────┐
- *   │   upload.events.exchange        │  (Direct Exchange)
- *   └─────────────────────────────────┘
- *        │
- *        ├── routing-key: "upload.json" ────▶ upload.events.json.queue
- *        │
- *        └── routing-key: "upload.protobuf" ─▶ upload.events.protobuf.queue
- *
- *   mq-benchmark app sluša oba queue-a
- */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "upload-event")
 public class UploadEventConfig {
 
-    /**
-     * Ime exchange-a.
-     */
     private String exchange = "upload.events.exchange";
 
-    /**
-     * Konfiguracija za JSON.
-     */
     private QueueConfig json = new QueueConfig("upload.events.json.queue", "upload.json");
 
-    /**
-     * Konfiguracija za Protobuf.
-     */
     private QueueConfig protobuf = new QueueConfig("upload.events.protobuf.queue", "upload.protobuf");
 
     @Data
@@ -61,18 +30,14 @@ public class UploadEventConfig {
         }
     }
 
-    // ========================================
     // EXCHANGE
-    // ========================================
 
     @Bean
     public DirectExchange uploadEventExchange() {
         return new DirectExchange(exchange, true, false);
     }
 
-    // ========================================
     // QUEUES
-    // ========================================
 
     @Bean
     public Queue uploadEventJsonQueue() {
@@ -84,9 +49,7 @@ public class UploadEventConfig {
         return QueueBuilder.durable(protobuf.getQueue()).build();
     }
 
-    // ========================================
     // BINDINGS
-    // ========================================
 
     @Bean
     public Binding uploadEventJsonBinding(Queue uploadEventJsonQueue, DirectExchange uploadEventExchange) {

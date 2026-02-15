@@ -12,12 +12,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Custom health controller koji pruža informacije o stanju replike.
- *
- * Koristi se pored standardnog /actuator/health endpoint-a za:
- * - Identifikaciju koja replika je odgovorila
- * - Proveru konekcije prema bazi
- * - Load balancer health checks
+ Custom health controller koji pruža informacije o stanju replike.
+
+ Koristi se pored standardnog /actuator/health endpoint-a za:
+ - Identifikaciju koja replika je odgovorila
+ - Proveru konekcije prema bazi
+ - Load balancer health checks
  */
 @RestController
 @RequestMapping("/api/health")
@@ -35,10 +35,6 @@ public class HealthController {
         this.dataSource = dataSource;
     }
 
-    /**
-     * Osnovni health check - brz odgovor za load balancer.
-     * Vraća 200 OK ako je aplikacija živa.
-     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> healthCheck() {
         Map<String, Object> response = new HashMap<>();
@@ -50,10 +46,6 @@ public class HealthController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Detaljni health check - proverava i konekciju prema bazi.
-     * Koristan za debugging i monitoring.
-     */
     @GetMapping("/detailed")
     public ResponseEntity<Map<String, Object>> detailedHealthCheck() {
         Map<String, Object> response = new HashMap<>();
@@ -76,9 +68,6 @@ public class HealthController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Proverava da li je konekcija prema bazi aktivna.
-     */
     private boolean checkDatabaseConnection() {
         try (Connection connection = dataSource.getConnection()) {
             return connection.isValid(2); // timeout 2 sekunde
