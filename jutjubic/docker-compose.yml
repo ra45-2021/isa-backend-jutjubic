@@ -186,9 +186,37 @@ services:
       timeout: 10s
       retries: 3
 
+  prometheus:
+    image: prom/prometheus
+    container_name: jutjubic-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - app-replica-1
+      - app-replica-2
+    networks:
+      - jutjubic-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: jutjubic-grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - jutjubic-network
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+
 networks:
   jutjubic-network:
     driver: bridge
 
 volumes:
   postgres_data:
+  grafana_data:
