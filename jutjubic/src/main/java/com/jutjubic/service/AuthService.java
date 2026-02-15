@@ -22,6 +22,7 @@ public class AuthService {
     private final Map<String, Integer> attemptsCache = new ConcurrentHashMap<>();
     private final Map<String, LocalDateTime> lastAttemptTime = new ConcurrentHashMap<>();
 
+
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        EmailService emailService,
