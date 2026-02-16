@@ -4,6 +4,7 @@ import com.jutjubic.domain.PopularVideo;
 import com.jutjubic.dto.PostViewDto;
 import com.jutjubic.repository.PopularVideoRepository;
 import com.jutjubic.repository.PostRepository;
+import com.jutjubic.service.PopularVideoETLService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ public class PopularVideoController {
 
     private final PopularVideoRepository popularVideoRepository;
     private final PostRepository postRepository;
+    private final PopularVideoETLService popularVideoETLService;
 
     @GetMapping
     public List<PostViewDto> getPopularVideos() {
@@ -35,5 +37,11 @@ public class PopularVideoController {
                     return postRepository.findPopularPostsByIds(ids);
                 })
                 .orElse(List.of());
+    }
+
+    @PostMapping("/run-etl")
+    public PopularVideo runPopularVideoETL() {
+        popularVideoETLService.runETL();
+        return popularVideoRepository.findTopByOrderByPipelineRunAtDesc().orElse(null);
     }
 }

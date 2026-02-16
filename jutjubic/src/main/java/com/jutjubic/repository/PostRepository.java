@@ -144,6 +144,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
       p.id, p.title, p.description, p.tags, p.videoUrl, p.createdAt,
       a.id, a.username, a.name, a.surname, a.profileImageUrl,
       p.viewCount, p.scheduledAt, p.durationSeconds
+  ORDER BY array_position(:ids, p.id)
 """)
     List<PostViewDto> findPopularPostsByIds(@Param("ids") List<Long> ids);
 
