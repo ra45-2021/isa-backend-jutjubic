@@ -1,5 +1,6 @@
 package com.jutjubic.security;
 
+import com.jutjubic.service.ActiveUserMetrics;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,9 +17,11 @@ import java.util.ArrayList;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final ActiveUserMetrics activeUserMetrics;
 
-    public JwtRequestFilter(JwtUtil jwtUtil) {
+    public JwtRequestFilter(JwtUtil jwtUtil, ActiveUserMetrics activeUserMetrics) {
         this.jwtUtil = jwtUtil;
+        this.activeUserMetrics = activeUserMetrics;
     }
 
     @Override
@@ -45,12 +48,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    username, null, new ArrayList<>());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (username != null) {
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            activeUserMetrics.recordActivity(username);
         }
+
 
         chain.doFilter(request, response);
     }
