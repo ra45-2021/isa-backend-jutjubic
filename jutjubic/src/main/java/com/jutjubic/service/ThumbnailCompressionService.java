@@ -15,7 +15,7 @@ public class ThumbnailCompressionService {
 
     private final UploadProperties props;
 
-    //touch -t 202602101830 file.jpg
+    //touch -t 202502101830 file.jpg
 
     public ThumbnailCompressionService(UploadProperties props) {
         this.props = props;

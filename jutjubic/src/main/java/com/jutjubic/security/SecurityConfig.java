@@ -13,7 +13,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.Arrays;
 
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class SecurityConfig {
@@ -34,7 +33,11 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+                    config.setAllowedOrigins(Arrays.asList(
+                            "http://localhost:4200",
+                            "http://172.20.10.2:4200",
+                            "http://192.168.1.200:4200"
+                    ));
                     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(Arrays.asList("*"));
                     config.setAllowCredentials(true);
@@ -45,13 +48,17 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/ws/**").permitAll()
+
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
+
+                        .requestMatchers("/uploads/**", "/media/**").permitAll()
+
+                        .requestMatchers("/api/auth/**").permitAll()
+
                         .requestMatchers("/api/crdt/**").permitAll()
                         .requestMatchers("/api/posts/*/crdt-views").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/posts/*/view").permitAll()
-                        .requestMatchers("/uploads/**", "/media/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/popular/run-etl").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/popular").permitAll()
@@ -59,9 +66,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/thumbnail").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/video").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/parties/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/parties/*/join").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/parties").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/parties/*/start").authenticated()
+
                         .requestMatchers(HttpMethod.POST, "/api/posts/*/like").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/posts/*/comments").authenticated()
+
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 );
