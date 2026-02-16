@@ -59,7 +59,8 @@ public class WatchPartyService {
 
         partyRepo.save(p);
 
-        ws.convertAndSend(topic(p.getId()), new WsEvent("WATCHERS", null, toDto(p).watchers));
+        ws.convertAndSend(topic(p.getId()), new WsEvent("JOIN", null, null, authorUsername));
+        ws.convertAndSend(topic(p.getId()), new WsEvent("WATCHERS", null, toDto(p).watchers, null));
 
         return toDto(p);
     }
@@ -68,7 +69,12 @@ public class WatchPartyService {
     public List<PartyDto> listAll() {
         return partyRepo.findAll().stream()
                 .sorted(Comparator.comparing(WatchParty::getCreatedAt).reversed())
-                .map(this::toDto)
+                .map(p -> {
+                    PartyDto dto = toDto(p);
+                    User u = currentUser.optional();
+                    dto.canManage = u != null && u.getUsername().equals(p.getAuthorUsername());
+                    return dto;
+                })
                 .toList();
     }
 
@@ -76,7 +82,13 @@ public class WatchPartyService {
     public PartyDto get(String id) {
         WatchParty p = partyRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Party not found"));
-        return toDto(p);
+
+        PartyDto dto = toDto(p);
+
+        User u = currentUser.optional();
+        dto.canManage = u != null && u.getUsername().equals(p.getAuthorUsername());
+
+        return dto;
     }
 
     @Transactional
@@ -91,7 +103,8 @@ public class WatchPartyService {
 
         partyRepo.save(p);
 
-        ws.convertAndSend(topic(id), new WsEvent("WATCHERS", null, toDto(p).watchers));
+        ws.convertAndSend(topic(id), new WsEvent("JOIN", null, null, display));
+        ws.convertAndSend(topic(id), new WsEvent("WATCHERS", null, toDto(p).watchers, null));
 
         return toDto(p);
     }
@@ -119,7 +132,7 @@ public class WatchPartyService {
         p.setVideoPostId(postId);
         partyRepo.save(p);
 
-        ws.convertAndSend(topic(partyId), new WsEvent("PLAY", postId, null));
+        ws.convertAndSend(topic(partyId), new WsEvent("PLAY", postId, null, null));
 
         return toDto(p);
     }
@@ -157,13 +170,16 @@ public class WatchPartyService {
         public String type;
         public Long postId;
         public List<String> watchers;
+        public String displayName;
 
         public WsEvent() {}
 
-        public WsEvent(String type, Long postId, List<String> watchers) {
+        public WsEvent(String type, Long postId, List<String> watchers, String displayName) {
             this.type = type;
             this.postId = postId;
             this.watchers = watchers;
+            this.displayName = displayName;
         }
     }
+
 }

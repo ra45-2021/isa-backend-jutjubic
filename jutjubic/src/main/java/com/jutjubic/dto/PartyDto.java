@@ -11,4 +11,5 @@ public class PartyDto {
     public String authorUsername;
     public Long videoPostId;
     public List<String> watchers;
+    public boolean canManage;
 }

@@ -1,8 +1,5 @@
 package com.jutjubic.config;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.*;
 import com.jutjubic.security.JwtUtil;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -25,16 +22,6 @@ import java.util.List;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
-        registry.addEndpoint("/ws-sockjs").setAllowedOriginPatterns("*").withSockJS();
-    }
-
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-        config.setApplicationDestinationPrefixes("/app");
     private final JwtUtil jwtUtil;
 
     public WebSocketConfig(JwtUtil jwtUtil) {

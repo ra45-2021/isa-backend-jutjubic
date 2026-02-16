@@ -29,7 +29,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        if (path.startsWith("/uploads/") || path.startsWith("/media/")) {
+
+        if (
+                path.startsWith("/uploads/") ||
+                        path.startsWith("/media/") ||
+                        path.startsWith("/ws/")
+        ) {
             chain.doFilter(request, response);
             return;
         }
