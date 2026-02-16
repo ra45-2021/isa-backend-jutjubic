@@ -60,6 +60,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/posts/*/crdt-views").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/posts/*/view").permitAll()
 
+                        .requestMatchers(HttpMethod.POST, "/api/popular/run-etl").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/popular").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/popular/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/thumbnail").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*/video").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
