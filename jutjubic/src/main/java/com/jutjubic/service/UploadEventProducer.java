@@ -17,15 +17,15 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Servis za slanje UploadEvent poruka u RabbitMQ.
- *
- * Kada korisnik upload-uje novi video, ovaj servis:
- * 1. Kreira UploadEventDto sa informacijama o videu
- * 2. Serijalizuje u JSON format i šalje na JSON queue
- * 3. Serijalizuje u Protobuf format i šalje na Protobuf queue
- *
- * Ovo omogućava benchmark aplikaciji da primi iste podatke
- * u oba formata i uporedi performanse.
+  Servis za slanje UploadEvent poruka u RabbitMQ.
+
+  Kada korisnik upload-uje novi video, ovaj servis:
+  1. Kreira UploadEventDto sa informacijama o videu
+  2. Serijalizuje u JSON format i šalje na JSON queue
+  3. Serijalizuje u Protobuf format i šalje na Protobuf queue
+
+  Ovo omogućava benchmark aplikaciji da primi iste podatke
+  u oba formata i uporedi performanse.
  */
 @Slf4j
 @Service
@@ -44,14 +44,6 @@ public class UploadEventProducer {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Šalje UploadEvent poruku za novi video.
-     *
-     * Poziva se iz PostService nakon uspešnog upload-a videa.
-     *
-     * @param post Post entitet (novi video)
-     * @param fileSizeBytes Veličina fajla u bajtovima
-     */
     public void sendUploadEvent(Post post, long fileSizeBytes) {
         try {
             // Kreiraj UploadEventDto
@@ -72,9 +64,6 @@ public class UploadEventProducer {
         }
     }
 
-    /**
-     * Kreira UploadEventDto iz Post entiteta.
-     */
     private UploadEventDto createUploadEvent(Post post, long fileSizeBytes) {
         // Parsiraj tagove ako postoje
         List<String> tags = null;
@@ -96,10 +85,6 @@ public class UploadEventProducer {
                 .build();
     }
 
-    /**
-     * Serijalizuje i šalje poruku u JSON formatu.
-     * Koristi Message objekat direktno da izbegne transformaciju od MessageConverter-a.
-     */
     private void sendJsonMessage(UploadEventDto event) {
         try {
             byte[] jsonData = objectMapper.writeValueAsBytes(event);
@@ -122,10 +107,6 @@ public class UploadEventProducer {
         }
     }
 
-    /**
-     * Serijalizuje i šalje poruku u Protobuf formatu.
-     * Koristi Message objekat direktno da izbegne transformaciju od MessageConverter-a.
-     */
     private void sendProtobufMessage(UploadEventDto event) {
         try {
             // Konvertuj u Protobuf objekat

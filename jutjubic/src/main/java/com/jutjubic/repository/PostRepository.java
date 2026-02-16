@@ -34,7 +34,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
       (SELECT COUNT(l) FROM PostLike l WHERE l.post = p),
       (SELECT COUNT(l) > 0 FROM PostLike l WHERE l.post = p AND l.user.username = :currentUsername),
       p.viewCount,
-      p.scheduledAt
+      p.scheduledAt,
+      p.durationSeconds
   )
   FROM Post p
   JOIN p.author a
@@ -42,7 +43,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
   WHERE p.scheduledAt IS NULL OR p.scheduledAt <= CURRENT_TIMESTAMP
   GROUP BY
       p.id, p.title, p.description, p.tags, p.videoUrl, p.createdAt,
-      a.id, a.username, a.name, a.surname, a.profileImageUrl
+      a.id, a.username, a.name, a.surname, a.profileImageUrl,
+      p.durationSeconds
   ORDER BY p.createdAt DESC
 """)
     List<PostViewDto> findAllPostViewsNewestFirst(@Param("currentUsername") String currentUsername);
@@ -67,7 +69,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
       (SELECT COUNT(l) FROM PostLike l WHERE l.post = p),
       (SELECT COUNT(l) > 0 FROM PostLike l WHERE l.post = p AND l.user.username = :currentUsername),
       p.viewCount,
-      p.scheduledAt
+      p.scheduledAt,
+      p.durationSeconds
   )
   FROM Post p
   JOIN p.author a
@@ -75,7 +78,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
   WHERE a.username = :username AND (p.scheduledAt IS NULL OR p.scheduledAt <= CURRENT_TIMESTAMP)
   GROUP BY
       p.id, p.title, p.description, p.tags, p.videoUrl, p.createdAt,
-      a.id, a.username, a.name, a.surname, a.profileImageUrl
+      a.id, a.username, a.name, a.surname, a.profileImageUrl,
+      p.durationSeconds
   ORDER BY p.createdAt DESC
 """)
     List<PostViewDto> findAllPostViewsByUsernameNewestFirst(
@@ -93,13 +97,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
       (SELECT COUNT(l) FROM PostLike l WHERE l.post = p),
       (SELECT COUNT(l) > 0 FROM PostLike l WHERE l.post = p AND l.user.username = :currentUsername),
       p.viewCount,
-      p.scheduledAt
+      p.scheduledAt,
+      p.durationSeconds
   )
   FROM Post p
   JOIN p.author a
   LEFT JOIN Comment c ON c.post = p
   WHERE p.id = :postId AND (p.scheduledAt IS NULL OR p.scheduledAt <= CURRENT_TIMESTAMP)
-  GROUP BY p.id, a.id
+  GROUP BY p.id, a.id, p.durationSeconds
 """)
     Optional<PostViewDto> findPostViewByPostId(
             @Param("postId") Long postId,
