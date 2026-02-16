@@ -63,3 +63,6 @@ jutjubic/src/main/java/com/jutjubic/config/WebConfig.java
 
 ### Mac OS ###
 .DS_Store
+
+### Claude ###
+.claude/

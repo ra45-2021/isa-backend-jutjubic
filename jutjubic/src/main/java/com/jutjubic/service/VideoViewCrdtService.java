@@ -1,6 +1,8 @@
 package com.jutjubic.service;
 
+import com.jutjubic.domain.VideoDailyView;
 import com.jutjubic.domain.VideoViewCrdt;
+import com.jutjubic.repository.VideoDailyViewRepository;
 import com.jutjubic.repository.VideoViewCrdtRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -8,18 +10,21 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jutjubic.dto.CrdtSyncMessageDto;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class VideoViewCrdtService {
 
     private final VideoViewCrdtRepository repository;
+    private final VideoDailyViewRepository dailyViewRepository;
 
     @Value("${replica.id}")
     private String replicaId;
 
-    public VideoViewCrdtService(VideoViewCrdtRepository repository) {
+    public VideoViewCrdtService(VideoViewCrdtRepository repository, VideoDailyViewRepository dailyViewRepository) {
         this.repository = repository;
+        this.dailyViewRepository = dailyViewRepository;
     }
 
 
@@ -55,6 +60,23 @@ public class VideoViewCrdtService {
                 broadcastToOtherReplicas(videoId);
             }
         }
+
+        // Increment dailyView table
+        LocalDate today = LocalDate.now();
+
+        VideoDailyView dailyView = dailyViewRepository
+                .findByVideoIdAndViewDate(videoId, today)
+                .orElseGet(() -> {
+                    VideoDailyView v = new VideoDailyView();
+                    v.setVideoId(videoId);
+                    v.setViewDate(today);
+                    v.setViewCount(0L);
+                    return v;
+                });
+
+        dailyView.setViewCount(dailyView.getViewCount() + 1);
+        dailyViewRepository.save(dailyView);
+
     }
 
     @Transactional(readOnly = true)
@@ -128,9 +150,9 @@ public class VideoViewCrdtService {
 
             try {
                 restTemplate.postForEntity(url + "/api/crdt/broadcast/" + videoId, null, Void.class);
-                System.out.println("[CRDT HARD] Triggered broadcast on " + url + " for video " + videoId);
+                System.out.println("Triggered broadcast on " + url + " for video " + videoId);
             } catch (Exception e) {
-                System.err.println("[CRDT HARD] Failed to trigger broadcast on " + url + ": " + e.getMessage());
+                System.err.println("Failed to trigger broadcast on " + url + ": " + e.getMessage());
             }
         }
 

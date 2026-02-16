@@ -17,6 +17,8 @@ public class PostViewDto {
     private Long likeCount;
     private Boolean likedByMe;
     private Long view_count;
+    private Instant scheduledAt;
+    private Double durationSeconds;
 
 
     public PostViewDto(
@@ -31,7 +33,9 @@ public class PostViewDto {
             Long commentCount,
             Long likeCount,
             Boolean likedByMe,
-            Long view_count
+            Long view_count,
+            Instant scheduledAt,
+            Double durationSeconds
     ) {
         this.id = id;
         this.title = title;
@@ -45,6 +49,9 @@ public class PostViewDto {
         this.likeCount = likeCount;
         this.likedByMe = likedByMe;
         this.view_count = view_count;
+        this.scheduledAt = scheduledAt;
+        this.durationSeconds = durationSeconds;
+
     }
 
     public PostViewDto(
@@ -65,7 +72,9 @@ public class PostViewDto {
             Long commentCount,
             Long likeCount,
             Boolean likedByMe,
-            Long view_count
+            Long view_count,
+            Instant scheduledAt,
+            Double durationSeconds
     ) {
         this.id = id;
         this.title = title;
@@ -96,6 +105,9 @@ public class PostViewDto {
         this.likeCount = likeCount;
         this.likedByMe = likedByMe;
         this.view_count = view_count;
+        this.scheduledAt = scheduledAt;
+        this.durationSeconds = durationSeconds;
+
     }
 
 
@@ -112,5 +124,9 @@ public class PostViewDto {
     public Long getLikeCount() { return likeCount; }
     public Boolean getLikedByMe() { return likedByMe; }
     public Long getViewCount() { return view_count; }
+    public Instant getScheduledAt() { return scheduledAt; }
+    public Double getDurationSeconds() { return durationSeconds; }
+
+    public void setViewCount(Long viewCount) {this.view_count = viewCount;}
 
 }

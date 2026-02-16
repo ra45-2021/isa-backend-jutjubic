@@ -1,0 +1,44 @@
+// Protocol Buffers definicija za UploadEvent
+// Ova šema definiše strukturu poruke koja se šalje kada se upload-uje novi video
+
+syntax = "proto3";
+
+// Paket u kojem će biti generisane Java klase
+package com.jutjubic.proto;
+
+// Opcije za generisanje Java koda
+option java_package = "com.jutjubic.proto";
+option java_outer_classname = "UploadEventProto";
+
+// UploadEvent poruka - sadrži informacije o novokreiranom videu
+message UploadEvent {
+    // Jedinstveni identifikator događaja (UUID)
+    string event_id = 1;
+
+    // ID videa u bazi podataka
+    int64 video_id = 2;
+
+    // Naziv/naslov videa
+    string title = 3;
+
+    // Korisničko ime autora
+    string author = 4;
+
+    // Veličina fajla u bajtovima
+    int64 file_size_bytes = 5;
+
+    // Trajanje videa u sekundama (opciono)
+    int32 duration_seconds = 6;
+
+    // Unix timestamp kada je video upload-ovan (milisekunde)
+    int64 upload_timestamp = 7;
+
+    // Lista tagova
+    repeated string tags = 8;
+
+    // Opis videa (opciono)
+    string description = 9;
+
+    // ID replike koja je obradila upload
+    string replica_id = 10;
+}

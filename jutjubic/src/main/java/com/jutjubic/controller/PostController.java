@@ -29,6 +29,17 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRange;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaTypeFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.support.ResourceRegion;
+import java.time.Duration;
+
+
 
 
 import java.io.File;
@@ -140,12 +151,20 @@ public class PostController {
         if (lonParam != null && !lonParam.isBlank()) {
             locationLon = Double.parseDouble(lonParam);
         }
+        String scheduledAtParam = request.getParameter("scheduledAt");
+
+        Instant scheduledAt = null;
+
+        if (scheduledAtParam != null && !scheduledAtParam.isBlank()) {
+            scheduledAt = Instant.parse(scheduledAtParam);
+        }
+
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
 
         var created = postUploadService.createPost(
-                email, title, description, tags, locationLat, locationLon, thumbnail, video
+                email, title, description, tags, locationLat, locationLon, scheduledAt, thumbnail, video
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -195,28 +214,59 @@ public class PostController {
         };
     }
 
+    private boolean isPremiereEnded(Post post) {
+        if (post.getScheduledAt() == null) {
+            return false;
+        }
+
+        if (post.getDurationSeconds() == null) {
+            return false;
+        }
+
+        Instant now = Instant.now();
+        Instant scheduledAt = post.getScheduledAt();
+        Instant premiereEndTime = scheduledAt.plusSeconds(post.getDurationSeconds().longValue());
+
+        return now.isAfter(premiereEndTime);
+    }
+
     @GetMapping("/{postId}/video")
-    public ResponseEntity<byte[]> getVideo(@PathVariable Long postId) throws Exception {
+    public ResponseEntity<byte[]> streamVideo(
+            @PathVariable Long postId,
+            @RequestHeader(value = "Range", required = false) String rangeHeader
+    ) throws Exception {
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        String videoUrl = post.getVideoUrl();
-        if (videoUrl == null || videoUrl.isBlank()) {
-            throw new RuntimeException("Video URL is empty");
+        // Check scheduled video state
+        if (post.getScheduledAt() != null) {
+            Instant now = Instant.now();
+            Instant scheduledAt = post.getScheduledAt();
+            boolean premiereEnded = isPremiereEnded(post);
+
+            if (!premiereEnded) {
+                if (now.isBefore(scheduledAt)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.FORBIDDEN,
+                            "Video is scheduled for " + scheduledAt + " and is not yet available"
+                    );
+                }
+            }
         }
 
-        postRepository.incrementViewCount(postId);
+        String videoUrl = post.getVideoUrl();
 
-        String videoFileName = Paths.get(videoUrl).getFileName().toString();
+        String relativePath = videoUrl.startsWith("/media/")
+                ? videoUrl.substring(7)
+                : videoUrl;
 
         Path baseDir = Paths.get(uploadProperties.getDir());
         if (!baseDir.isAbsolute()) {
             baseDir = Paths.get(System.getProperty("user.dir")).resolve(baseDir);
         }
 
-        Path filePath = baseDir
-                .resolve(uploadProperties.getVideosDir())
-                .resolve(videoFileName)
+        Path filePath = baseDir.resolve(relativePath)
                 .toAbsolutePath()
                 .normalize();
 
@@ -224,11 +274,41 @@ public class PostController {
             throw new RuntimeException("Video file not found: " + filePath);
         }
 
-        byte[] videoBytes = Files.readAllBytes(filePath);
+        long fileSize = Files.size(filePath);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("video/mp4"))
-                .body(videoBytes);
+        long offsetSeconds = 0;
+        if (post.getScheduledAt() != null && !isPremiereEnded(post)) {
+            Instant scheduled = post.getScheduledAt();
+            Instant now = Instant.now();
+            if (now.isAfter(scheduled)) {
+                offsetSeconds = Duration.between(scheduled, now).getSeconds();
+            }
+        }
+
+        long startByte = 0;
+        long endByte = fileSize - 1;
+
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String[] parts = rangeHeader.substring(6).split("-");
+            startByte = Long.parseLong(parts[0]);
+            if (parts.length > 1 && !parts[1].isEmpty()) {
+                endByte = Long.parseLong(parts[1]);
+            }
+        }
+
+        long contentLength = endByte - startByte + 1;
+
+        try (InputStream in = Files.newInputStream(filePath)) {
+            in.skip(startByte);
+            byte[] buffer = in.readNBytes((int) contentLength);
+
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                    .header("Content-Type", "video/mp4")
+                    .header("Accept-Ranges", "bytes")
+                    .header("Content-Range", "bytes " + startByte + "-" + endByte + "/" + fileSize)
+                    .header("Content-Length", String.valueOf(buffer.length))
+                    .body(buffer);
+        }
     }
 
     @PostMapping("/{postId}/view")
@@ -282,11 +362,16 @@ public class PostController {
         ));
     }
 
-
     @GetMapping
     public List<PostViewDto> getAllPosts(Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;
-        return postRepository.findAllPostViewsNewestFirst(currentUsername);
+        List<PostViewDto> list = postRepository.findAllPostViewsNewestFirst(currentUsername);
+
+        for (PostViewDto dto : list) {
+            Long total = videoViewCrdtService.getTotalViewCount(dto.getId());
+            dto.setViewCount(total != null ? total : 0L);
+        }
+        return list;
     }
 
 
@@ -321,10 +406,15 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostViewDto> getPost(@PathVariable Long postId, Authentication auth) {
         String currentUsername = (auth != null) ? auth.getName() : null;
+
         return postRepository.findPostViewByPostId(postId, currentUsername)
-                .map(ResponseEntity::ok)
+                .map(dto -> {
+                    dto.setViewCount(videoViewCrdtService.getTotalViewCount(postId));
+                    return ResponseEntity.ok(dto);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<?> toggleLike(@PathVariable Long postId, Authentication auth) {

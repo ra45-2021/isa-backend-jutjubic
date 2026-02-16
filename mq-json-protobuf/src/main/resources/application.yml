@@ -1,0 +1,31 @@
+server:
+  port: ${SERVER_PORT:8080}  # U Docker-u koristi 8080, eksterno mapiran na 8083
+
+spring:
+  application:
+    name: mq-benchmark
+
+  # RabbitMQ konfiguracija
+  # U Docker okruženju, host će biti 'rabbitmq' (ime servisa)
+  # Lokalno, koristi 'localhost'
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+
+# Konfiguracija za upload event queue-ove
+upload-event:
+  exchange: upload.events.exchange
+  json:
+    queue: upload.events.json.queue
+    routing-key: upload.json
+  protobuf:
+    queue: upload.events.protobuf.queue
+    routing-key: upload.protobuf
+
+# Logging konfiguracija
+logging:
+  level:
+    com.jutjubic.mqbenchmark: DEBUG
+    org.springframework.amqp: INFO
