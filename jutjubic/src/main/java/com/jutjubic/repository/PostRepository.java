@@ -111,6 +111,43 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("currentUsername") String currentUsername
     );
 
+    @Query("""
+  SELECT new com.jutjubic.dto.PostViewDto(
+      p.id,
+      p.title,
+      p.description,
+      p.tags,
+      p.videoUrl,
+      CONCAT(CONCAT('/api/posts/', p.id), '/thumbnail'),
+      p.createdAt,
+
+      a.id,
+      a.username,
+      a.name,
+      a.surname,
+      a.profileImageUrl,
+
+      COUNT(DISTINCT c),
+      COUNT(DISTINCT l),
+      false,
+      p.viewCount,
+      p.scheduledAt,
+      p.durationSeconds
+  )
+  FROM Post p
+  JOIN p.author a
+  LEFT JOIN Comment c ON c.post = p
+  LEFT JOIN PostLike l ON l.post = p
+  WHERE p.id IN :ids
+  AND (p.scheduledAt IS NULL OR p.scheduledAt <= CURRENT_TIMESTAMP)
+  GROUP BY
+      p.id, p.title, p.description, p.tags, p.videoUrl, p.createdAt,
+      a.id, a.username, a.name, a.surname, a.profileImageUrl,
+      p.viewCount, p.scheduledAt, p.durationSeconds
+""")
+    List<PostViewDto> findPopularPostsByIds(@Param("ids") List<Long> ids);
+
+
     @Modifying
     @Transactional
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
