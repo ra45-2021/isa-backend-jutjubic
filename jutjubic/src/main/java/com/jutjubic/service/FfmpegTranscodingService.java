@@ -31,7 +31,6 @@ public class FfmpegTranscodingService {
                 "-c:a", "aac",
                 "-b:a", "128k",
 
-                // allow streaming playback in browsers
                 "-movflags", "+faststart",
 
                 output.toString()
@@ -40,7 +39,6 @@ public class FfmpegTranscodingService {
         pb.redirectErrorStream(true);
         Process p = pb.start();
 
-        // (optional but VERY helpful) print ffmpeg output so you can see errors
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             while (br.readLine() != null) { /* consume */ }

@@ -15,13 +15,14 @@ public class ThumbnailCompressionService {
 
     private final UploadProperties props;
 
-    //touch -t 202502101830 file.jpg
+    //touch -t 202502101830 0a5738fe-b5d0-40bd-a8de-2737fe77f2cc.jpg
 
     public ThumbnailCompressionService(UploadProperties props) {
         this.props = props;
     }
 
-    @Scheduled(cron = "0 0 0  * * *", zone = "Europe/Belgrade")
+    @Scheduled(cron = "*/15 * * * * *", zone = "Europe/Belgrade")
+    //@Scheduled(cron = "0 0 0  * * *", zone = "Europe/Belgrade")
     public void dailyCompressionJob() {
         System.out.println("[THUMB-COMPRESS] Daily job started...");
         var res = compressThumbnailsOlderThanDays(30);
