@@ -1,0 +1,189 @@
+{
+  "info": {
+    "_postman_id": "9ad40e74-f85b-4996-bc7f-d7e71af5aa79",
+    "name": "Ivan testiranje",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20870864"
+  },
+  "item": [
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"emailAdress\": \"ana.zaric@mail.com\",\r\n  \"password\": \"pass\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "test posta",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhbmEuemFyaWNAbWFpbC5jb20iLCJpYXQiOjE3Njc4MzIwODYsImV4cCI6MTc2NzgzMzg4Nn0.vM_hrezIYtjYS6S8e3K8FqNk1W4xm-wwXb0DcMH0afpdSR0FSXAMn_aDMOky-SP-AcwenGZ05UCaglBTkA2dRQ",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "title",
+              "value": "Test video upload",
+              "type": "text",
+              "uuid": "902693a6-4b79-40ed-ba6e-340b302608c7"
+            },
+            {
+              "key": "description",
+              "value": "Opis testa",
+              "type": "text",
+              "uuid": "4d0ec8fe-0d4d-45f5-8ca9-3698282f27bd"
+            },
+            {
+              "key": "tags",
+              "value": "test, upload, mp4",
+              "type": "text",
+              "uuid": "edd6e284-eaf6-4688-93ec-7b99854a0858"
+            },
+            {
+              "key": "locationLat",
+              "value": "45.2671",
+              "type": "text",
+              "uuid": "b69adeb4-2d06-411a-901e-7e927c4d48e4"
+            },
+            {
+              "key": "locationLon",
+              "value": "19.8335",
+              "type": "text",
+              "uuid": "78ad30c9-32cf-43b2-a834-e6a5e95cab69"
+            },
+            {
+              "key": "thumbnail",
+              "type": "file",
+              "uuid": "0f5dd3d2-084e-4797-9cdb-93152f6f080b",
+              "src": "/C:/Users/ivrad/Pictures/IMG_4588.jpeg"
+            },
+            {
+              "key": "video",
+              "type": "file",
+              "uuid": "3313ca8e-3a68-4fbb-a168-3c54c8e31bec",
+              "src": "/C:/Users/ivrad/Videos/video-b1a8473f1d81b4bcaebe680523953e9b-V.mp4"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/posts",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "posts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Health check replika 1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8081",
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Health check replika 2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/api/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8082",
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "count 1000 bez mq",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "count 1000 sa mq",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "reset",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "results",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
